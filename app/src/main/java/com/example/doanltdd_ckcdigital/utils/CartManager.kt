@@ -15,6 +15,8 @@ object CartManager {
 
     val cartCount: Int get() = _cartItems.sumOf { it.quantity }
 
+    val badgeCartCount: Int get() = _cartItems.count()
+
     fun addToCart(product: ProductModel) {
         val index = _cartItems.indexOfFirst { it.product.ProductID == product.ProductID }
         if (index != -1) {
