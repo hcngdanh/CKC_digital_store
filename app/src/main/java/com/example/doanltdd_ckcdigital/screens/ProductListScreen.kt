@@ -140,7 +140,12 @@ fun ProductListScreen(
                             }
                         },
                         title = {
-                            Text("CKC DIGITAL", color = Color.White, fontWeight = FontWeight.Bold)
+                            AsyncImage(
+                                model = "https://res.cloudinary.com/dczhi464d/image/upload/v1767096256/shoplogo_new_fi45zg.png",
+                                contentDescription = "CKC Digital Logo",
+                                modifier = Modifier.height(35.dp),
+                                contentScale = ContentScale.Fit
+                            )
                         },
                         actions = {
                             IconButton(onClick = { }) { Icon(Icons.Outlined.Person, null, tint = Color.White) }
@@ -384,7 +389,7 @@ fun SearchBarSection(value: String, onValueChange: (String) -> Unit) {
         TextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.weight(1f).height(48.dp),
+            modifier = Modifier.weight(1f).height(60.dp),
             placeholder = { Text("Tìm sản phẩm ...", fontSize = 14.sp) },
             trailingIcon = {
                 if (value.isNotEmpty()) {
