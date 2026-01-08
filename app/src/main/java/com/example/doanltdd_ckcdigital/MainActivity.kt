@@ -11,7 +11,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             DoAnLTDD_CKCDigitalTheme {
-                // Gọi file điều hướng ở đây
                 AppNavGraph()
             }
         }
