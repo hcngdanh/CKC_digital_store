@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.doanltdd_ckcdigital.models.ProductModel
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
+import com.example.doanltdd_ckcdigital.utils.CartManager
 import com.example.doanltdd_ckcdigital.utils.CartManager.cartCount
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -155,12 +156,12 @@ fun ProductListScreen(
 
                             BadgedBox(
                                 badge = {
-                                    if (cartCount > 0) {
+                                    if (CartManager.badgeCartCount > 0) {
                                         Badge(
                                             containerColor = Color.Red,
                                             contentColor = Color.White
                                         ) {
-                                            Text(text = cartCount.toString())
+                                            Text(text = CartManager.badgeCartCount.toString())
                                         }
                                     }
                                 }
