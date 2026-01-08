@@ -8,8 +8,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.doanltdd_ckcdigital.models.ProductModel
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -55,28 +60,37 @@ fun ProductDetailScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Chi tiết sản phẩm", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            Column(
+                modifier = Modifier
+                    .background(Color.Black)
+                    .statusBarsPadding()
+            ) {
+                CenterAlignedTopAppBar(
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = Color.Black
+                    ),
+                    navigationIcon = {
+                        IconButton(
+                            onClick = { onBackClick() },
+                            modifier = Modifier.padding(start = 8.dp).size(40.dp)
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White, modifier = Modifier.size(25.dp))
+                        }
+                    },
+                    title = {
+                        AsyncImage(
+                            model = "https://res.cloudinary.com/dczhi464d/image/upload/v1767096256/shoplogo_new_fi45zg.png",
+                            contentDescription = "CKC Digital Logo",
+                            modifier = Modifier.height(35.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    },
+                    actions = {
+                        IconButton(onClick = onCartClick) {
+                            Icon(Icons.Outlined.ShoppingCart, null, tint = Color.White)
+                        }
                     }
-                },
-                actions = {
-                    IconButton(onClick = { /* TODO: Share logic */ }) {
-                        Icon(Icons.Outlined.Share, contentDescription = "Share")
-                    }
-                    IconButton(onClick = onCartClick) {
-                        Icon(Icons.Default.ShoppingCart, contentDescription = "Cart")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black,
-                    actionIconContentColor = Color.Black
-                )
-            )
+                )}
         },
         bottomBar = {
             BottomActionBar(
@@ -120,7 +134,7 @@ fun ProductDetailScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     AsyncImage(
-                        model = product!!.ThumbnailURL ?: "https://via.placeholder.com/500",
+                        model = product!!.ThumbnailURL,
                         contentDescription = product!!.ProductName,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -181,11 +195,16 @@ fun ProductDetailScreen(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 12.dp)
                     )
-                    SpecRow(label = "Loại cảm biến", value = product!!.SensorType ?: "Đang cập nhật")
+                    SpecRow(label = "Ngàm ống kính", value = product!!.LensMount ?: "Đang cập nhật")
                     HorizontalDivider(color = Color(0xFFEEEEEE))
-                    SpecRow(label = "Mã danh mục", value = "Category ID: ${product!!.CategoryID}")
+                    SpecRow(label = "Kích thước sensor", value = product!!.SensorType ?: "Đang cập nhật")
                     HorizontalDivider(color = Color(0xFFEEEEEE))
-                    SpecRow(label = "Bảo hành", value = "24 Tháng")
+                    SpecRow(label = "Độ phân giải", value = product!!.Resolution ?: "Đang cập nhật")
+                    HorizontalDivider(color = Color(0xFFEEEEEE))
+                    SpecRow(label = "Vi xử lý", value = product!!.Processor ?: "Đang cập nhật")
+                    HorizontalDivider(color = Color(0xFFEEEEEE))
+                    SpecRow(label = "Bảo hành", value = product!!.WarrantyPeriod ?: "Đang cập nhật")
+
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -252,11 +271,11 @@ fun BottomActionBar(
             OutlinedButton(
                 onClick = onAddToCart,
                 shape = RoundedCornerShape(4.dp),
-                border = BorderStroke(1.dp, Color(0xFFFF4D1C)),
+                border = BorderStroke(1.dp, Color(0xFF050505)),
                 modifier = Modifier.height(48.dp),
                 enabled = product != null
             ) {
-                Icon(Icons.Default.ShoppingCart, contentDescription = null, tint = Color(0xFFFF4D1C))
+                Icon(Icons.Default.ShoppingCart, contentDescription = null, tint = Color(0xFF000000))
             }
 
 
@@ -265,7 +284,7 @@ fun BottomActionBar(
                 modifier = Modifier
                     .weight(1f)
                     .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D1C)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000000)),
                 shape = RoundedCornerShape(4.dp),
                 enabled = product != null
             ) {

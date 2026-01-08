@@ -16,6 +16,11 @@ data class ProductModel(
 
     @SerializedName("ThumbnailURL")
     val ThumbnailURL: String?,
+    val Resolution: String,
+    val Processor: String,
+    val LensMount: String,
+    val Weight: String?,
+    val WarrantyPeriod: String,
 
     val SensorType: String?,
     val ShortDescription: String?,
@@ -30,3 +35,4 @@ data class CategoryModel(
     val CategoryName: String,
     val ParentID: Int?
 )
+

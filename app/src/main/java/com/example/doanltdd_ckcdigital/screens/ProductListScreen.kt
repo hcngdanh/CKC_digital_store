@@ -63,7 +63,7 @@ fun ProductListScreen(
             "LensG" -> "ỐNG KÍNH SONY DÒNG G"
             "LensGM" -> "ỐNG KÍNH SONY DÒNG G MASTER"
             "PHỤ KIỆN" -> "PHỤ KIỆN MÁY ẢNH & QUAY PHIM"
-            else -> "TẤT CẢ SẢN PHẨM | PHÂN PHỐI BỞI CKC DIGITAL"
+            else -> "GIAN HÀNG SONY | MÁY ẢNH & PHỤ KIỆN \n PHÂN PHỐI BỞI CKC DIGITAL"
         }
     }
 
@@ -389,7 +389,7 @@ fun SearchBarSection(value: String, onValueChange: (String) -> Unit) {
         TextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.weight(1f).height(60.dp),
+            modifier = Modifier.weight(1f).height(49.dp),
             placeholder = { Text("Tìm sản phẩm ...", fontSize = 14.sp) },
             trailingIcon = {
                 if (value.isNotEmpty()) {
