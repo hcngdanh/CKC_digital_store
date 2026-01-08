@@ -54,7 +54,7 @@ fun LoginScreen(
             isLoading = false
             if (email == "admin@gmail.com" && password == "123456") {
                 Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
-                viewModel.login() // Gọi hàm trong ViewModel
+                viewModel.login()
                 onNavigateToHome()
             } else {
                 Toast.makeText(context, "Sai email hoặc mật khẩu!", Toast.LENGTH_SHORT).show()

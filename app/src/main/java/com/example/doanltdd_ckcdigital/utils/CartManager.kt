@@ -9,44 +9,42 @@ data class CartItem(
 )
 
 object CartManager {
-    val cartItems = mutableStateListOf<CartItem>()
+    private val _cartItems = mutableStateListOf<CartItem>()
+    val cartItems: List<CartItem> get() = _cartItems
 
-    fun addProduct(product: ProductModel) {
-        val existingItem = cartItems.find { it.product.ProductID == product.ProductID }
-
+    fun addToCart(product: ProductModel) {
+        val existingItem = _cartItems.find { it.product.ProductID == product.ProductID }
         if (existingItem != null) {
-            increaseQuantity(existingItem)
+            existingItem.quantity++
         } else {
-            cartItems.add(CartItem(product, 1))
+            _cartItems.add(CartItem(product, 1))
         }
     }
 
     fun removeProduct(item: CartItem) {
-        cartItems.remove(item)
+        _cartItems.remove(item)
     }
 
     fun increaseQuantity(item: CartItem) {
-        val index = cartItems.indexOf(item)
+        val index = _cartItems.indexOf(item)
         if (index != -1) {
-            cartItems[index] = item.copy(quantity = item.quantity + 1)
+            item.quantity++
         }
     }
 
     fun decreaseQuantity(item: CartItem) {
-        val index = cartItems.indexOf(item)
-        if (index != -1) {
-            if (item.quantity > 1) {
-                cartItems[index] = item.copy(quantity = item.quantity - 1)
-            } else {
-            }
+        if (item.quantity > 1) {
+            item.quantity--
+        } else {
+            removeProduct(item)
         }
     }
 
-    fun clearCart() {
-        cartItems.clear()
+    fun getTotalPrice(): Double {
+        return _cartItems.sumOf { it.product.Price * it.quantity }
     }
 
-    fun getTotalPrice(): Double {
-        return cartItems.sumOf { it.product.Price * it.quantity }
+    fun clearCart() {
+        _cartItems.clear()
     }
 }
