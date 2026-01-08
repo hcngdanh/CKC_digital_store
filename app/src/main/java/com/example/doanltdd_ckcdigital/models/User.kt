@@ -25,3 +25,10 @@ data class LoginRequest(
     val Email: String,
     val Password: String
 )
+
+data class User(
+    val id: String,
+    val email: String,
+    val fullName: String,
+    val phone: String? = null
+)
