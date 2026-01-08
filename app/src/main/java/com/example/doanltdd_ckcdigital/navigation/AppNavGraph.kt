@@ -142,6 +142,10 @@ fun AppNavGraph() {
                     navController.navigate("login") {
                         popUpTo("register") { inclusive = true }
                     }
+                },
+                onBack = {
+                    navController.popBackStack()
+                    navController.popBackStack()
                 }
             )
         }

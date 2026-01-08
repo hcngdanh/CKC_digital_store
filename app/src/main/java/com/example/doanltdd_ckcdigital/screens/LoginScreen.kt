@@ -153,11 +153,11 @@ fun LoginScreen(
                     unfocusedContainerColor = Color.Transparent,
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
-                    focusedIndicatorColor = Color(0xFFFF4D1C),
+                    focusedIndicatorColor = Color(0xFFFFFFFF),
                     unfocusedIndicatorColor = Color.Gray,
-                    focusedLabelColor = Color(0xFFFF4D1C),
+                    focusedLabelColor = Color(0xFFFFFFFF),
                     unfocusedLabelColor = Color.Gray,
-                    cursorColor = Color(0xFFFF4D1C)
+                    cursorColor = Color(0xFFFFFFFF)
                 )
             )
 
@@ -177,13 +177,13 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .height(50.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D1C)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFFFFF)),
                 enabled = !isLoading
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("ĐĂNG NHẬP", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("ĐĂNG NHẬP", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 }
             }
 
@@ -193,7 +193,7 @@ fun LoginScreen(
                 Text("Chưa có tài khoản? ", color = Color.Gray)
                 Text(
                     text = "Đăng ký ngay",
-                    color = Color(0xFFFF4D1C),
+                    color = Color(0xFFFFFFFF),
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable { onNavigateToRegister() }
                 )

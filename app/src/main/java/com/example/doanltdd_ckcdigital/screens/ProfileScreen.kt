@@ -37,7 +37,6 @@ val TextGrey = Color(0xFFB0B0B0)
 val SelectionBlue = Color(0xFF448AFF)
 
 @Composable
-// Thay đổi onBackClick thành onNavigateToLogin để giải quyết xung đột
 fun RegisterScreen(onRegisterSuccess: () -> Unit, onNavigateToLogin: () -> Unit) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()

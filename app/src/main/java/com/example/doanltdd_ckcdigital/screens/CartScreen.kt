@@ -34,24 +34,28 @@ fun CartScreen(
     onBackClick: () -> Unit,
     onCheckoutClick: () -> Unit
 ) {
-    val cartItems = CartManager.cartItems
-    val totalPrice = CartManager.getTotalPrice()
-    val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
+    val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Giỏ hàng (${cartItems.size})", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        text = "Giỏ hàng (${CartManager.cartItems.size})",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
             )
         },
         bottomBar = {
-            if (cartItems.isNotEmpty()) {
+            if (CartManager.cartItems.isNotEmpty()) {
                 Surface(shadowElevation = 16.dp, color = Color.White) {
                     Row(
                         modifier = Modifier
@@ -61,9 +65,13 @@ fun CartScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Tổng thanh toán", fontSize = 14.sp, color = Color.Gray)
                             Text(
-                                text = formatter.format(totalPrice),
+                                text = "Tổng thanh toán (${CartManager.cartCount} sản phẩm)",
+                                fontSize = 14.sp,
+                                color = Color.Gray
+                            )
+                            Text(
+                                text = formatter.format(CartManager.getTotalPrice()),
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFFD32F2F)
@@ -71,18 +79,18 @@ fun CartScreen(
                         }
                         Button(
                             onClick = onCheckoutClick,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D1C)),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.height(48.dp)
                         ) {
-                            Text("Mua hàng", fontWeight = FontWeight.Bold)
+                            Text("Mua hàng", fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     }
                 }
             }
         }
     ) { padding ->
-        if (cartItems.isEmpty()) {
+        if (CartManager.cartItems.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -100,7 +108,10 @@ fun CartScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(16.dp)
             ) {
-                items(cartItems) { item ->
+                items(
+                    items = CartManager.cartItems,
+                    key = { it.product.ProductID }
+                ) { item ->
                     CartItemRow(
                         item = item,
                         onIncrease = { CartManager.increaseQuantity(item) },
@@ -120,17 +131,16 @@ fun CartItemRow(
     onDecrease: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
+    val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(2.dp),
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
+            modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
@@ -172,8 +182,7 @@ fun CartItemRow(
                     Box(
                         modifier = Modifier
                             .size(30.dp)
-                            .clickable { onDecrease() }
-                            .background(Color.White),
+                            .clickable { onDecrease() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(Icons.Default.Remove, null, tint = Color.Gray, modifier = Modifier.size(14.dp))
@@ -200,8 +209,7 @@ fun CartItemRow(
                     Box(
                         modifier = Modifier
                             .size(30.dp)
-                            .clickable { onIncrease() }
-                            .background(Color.White),
+                            .clickable { onIncrease() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(Icons.Default.Add, null, tint = Color.Black, modifier = Modifier.size(14.dp))

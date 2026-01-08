@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -31,7 +32,8 @@ import coil.compose.AsyncImage
 @Composable
 fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    onBack: ()  -> Unit
 ) {
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -48,11 +50,11 @@ fun RegisterScreen(
         unfocusedContainerColor = Color.Transparent,
         focusedTextColor = Color.White,
         unfocusedTextColor = Color.White,
-        focusedIndicatorColor = Color(0xFFFF4D1C),
+        focusedIndicatorColor = Color(0xFFFFFFFF),
         unfocusedIndicatorColor = Color.Gray,
-        focusedLabelColor = Color(0xFFFF4D1C),
+        focusedLabelColor = Color(0xFFFFFFFF),
         unfocusedLabelColor = Color.Gray,
-        cursorColor = Color(0xFFFF4D1C)
+        cursorColor = Color(0xFFFFFFFF)
     )
 
     fun handleRegister() {
@@ -74,6 +76,24 @@ fun RegisterScreen(
     }
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Black,
+                    titleContentColor = Color.White
+                )
+            )
+        },
         containerColor = Color.Black // <-- NỀN ĐEN
     ) { padding ->
         Column(
@@ -160,13 +180,13 @@ fun RegisterScreen(
                 onClick = { handleRegister() },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D1C)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFFFFF)),
                 enabled = !isLoading
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("ĐĂNG KÝ", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("ĐĂNG KÝ", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 }
             }
 
@@ -176,7 +196,7 @@ fun RegisterScreen(
                 Text("Đã có tài khoản? ", color = Color.Gray)
                 Text(
                     text = "Đăng nhập ngay",
-                    color = Color(0xFFFF4D1C),
+                    color = Color(0xFFFFFFFF),
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable { onNavigateToLogin() }
                 )

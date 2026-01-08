@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.doanltdd_ckcdigital.models.ProductModel
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
+import com.example.doanltdd_ckcdigital.utils.CartManager.cartCount
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
@@ -86,8 +87,25 @@ fun ProductDetailScreen(
                         )
                     },
                     actions = {
-                        IconButton(onClick = onCartClick) {
-                            Icon(Icons.Outlined.ShoppingCart, null, tint = Color.White)
+                        BadgedBox(
+                            badge = {
+                                if (cartCount > 0) {
+                                    Badge(
+                                        containerColor = Color.Red,
+                                        contentColor = Color.White
+                                    ) {
+                                        Text(text = cartCount.toString())
+                                    }
+                                }
+                            }
+                        ) {
+                            IconButton(onClick = { onCartClick() }) {
+                                Icon(
+                                    imageVector = Icons.Default.ShoppingCart,
+                                    contentDescription = "Giỏ hàng",
+                                    tint = Color.White
+                                )
+                            }
                         }
                     }
                 )}

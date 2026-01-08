@@ -3,19 +3,23 @@ package com.example.doanltdd_ckcdigital.utils
 import androidx.compose.runtime.mutableStateListOf
 import com.example.doanltdd_ckcdigital.models.ProductModel
 
+
+
 data class CartItem(
     val product: ProductModel,
-    var quantity: Int
+    val quantity: Int
 )
-
 object CartManager {
     private val _cartItems = mutableStateListOf<CartItem>()
     val cartItems: List<CartItem> get() = _cartItems
 
+    val cartCount: Int get() = _cartItems.sumOf { it.quantity }
+
     fun addToCart(product: ProductModel) {
-        val existingItem = _cartItems.find { it.product.ProductID == product.ProductID }
-        if (existingItem != null) {
-            existingItem.quantity++
+        val index = _cartItems.indexOfFirst { it.product.ProductID == product.ProductID }
+        if (index != -1) {
+            val item = _cartItems[index]
+            _cartItems[index] = item.copy(quantity = item.quantity + 1)
         } else {
             _cartItems.add(CartItem(product, 1))
         }
@@ -28,15 +32,18 @@ object CartManager {
     fun increaseQuantity(item: CartItem) {
         val index = _cartItems.indexOf(item)
         if (index != -1) {
-            item.quantity++
+            _cartItems[index] = item.copy(quantity = item.quantity + 1)
         }
     }
 
     fun decreaseQuantity(item: CartItem) {
-        if (item.quantity > 1) {
-            item.quantity--
-        } else {
-            removeProduct(item)
+        val index = _cartItems.indexOf(item)
+        if (index != -1) {
+            if (item.quantity > 1) {
+                _cartItems[index] = item.copy(quantity = item.quantity - 1)
+            } else {
+                _cartItems.removeAt(index)
+            }
         }
     }
 
