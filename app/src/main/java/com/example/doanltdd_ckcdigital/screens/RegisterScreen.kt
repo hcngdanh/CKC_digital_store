@@ -44,7 +44,6 @@ fun RegisterScreen(
 
     val context = LocalContext.current
 
-    // Cấu hình màu sắc chung cho TextField trên nền đen
     val textFieldColors = TextFieldDefaults.colors(
         focusedContainerColor = Color.Transparent,
         unfocusedContainerColor = Color.Transparent,
@@ -94,7 +93,7 @@ fun RegisterScreen(
                 )
             )
         },
-        containerColor = Color.Black // <-- NỀN ĐEN
+        containerColor = Color.Black
     ) { padding ->
         Column(
             modifier = Modifier
@@ -175,7 +174,6 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Nút Đăng ký
             Button(
                 onClick = { handleRegister() },
                 modifier = Modifier.fillMaxWidth().height(50.dp),

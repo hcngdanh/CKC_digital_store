@@ -43,7 +43,8 @@ import java.util.Locale
 @Composable
 fun ProductListScreen(
     onProductClick: (Int) -> Unit,
-    onCartClick: () -> Unit
+    onCartClick: () -> Unit,
+    onProfileClick: ()-> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
@@ -150,7 +151,7 @@ fun ProductListScreen(
                             )
                         },
                         actions = {
-                            IconButton(onClick = { }) { Icon(Icons.Outlined.Person, null, tint = Color.White) }
+                            IconButton(onClick = { onProfileClick }) { Icon(Icons.Outlined.Person, null, tint = Color.White) }
 
                             BadgedBox(
                                 badge = {

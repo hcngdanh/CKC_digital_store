@@ -17,6 +17,7 @@ import com.example.doanltdd_ckcdigital.screens.OrderDetailScreen
 import com.example.doanltdd_ckcdigital.screens.OrderHistoryScreen
 import com.example.doanltdd_ckcdigital.screens.ProductDetailScreen
 import com.example.doanltdd_ckcdigital.screens.ProductListScreen
+import com.example.doanltdd_ckcdigital.screens.ProfileScreen
 import com.example.doanltdd_ckcdigital.screens.RegisterScreen
 import com.example.doanltdd_ckcdigital.screens.SplashScreen
 import com.example.doanltdd_ckcdigital.utils.CartManager
@@ -50,6 +51,15 @@ fun AppNavGraph() {
                 },
                 onCartClick = {
                     navController.navigate("cart")
+                },
+                onProfileClick = {
+                    // Logic: Nếu đã đăng nhập -> Vào Profile, ngược lại -> Vào Login
+                    if (UserSession.isLoggedIn) {
+                        navController.navigate("profile")
+                    } else {
+                        Toast.makeText(context, "Vui lòng đăng nhập", Toast.LENGTH_SHORT).show()
+                        navController.navigate("login")
+                    }
                 }
             )
         }
@@ -169,6 +179,21 @@ fun AppNavGraph() {
         // 10. Chi tiết đơn hàng (Mẫu)
         composable("order_detail") {
             OrderDetailScreen()
+        }
+        composable("profile") {
+            ProfileScreen(
+                onBackClick = { navController.popBackStack() },
+                onLogoutClick = {
+                    // Xử lý đăng xuất
+                    UserSession.user = null
+                    Toast.makeText(context, "Đã đăng xuất", Toast.LENGTH_SHORT).show()
+
+                    // Quay về trang chủ và xóa backstack để tránh back lại profile
+                    navController.navigate("product_list") {
+                        popUpTo("product_list") { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }
