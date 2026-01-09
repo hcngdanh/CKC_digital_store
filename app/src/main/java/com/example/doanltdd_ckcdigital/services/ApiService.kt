@@ -5,8 +5,10 @@ import com.example.doanltdd_ckcdigital.models.AuthResponse
 import com.example.doanltdd_ckcdigital.models.CategoryModel
 import com.example.doanltdd_ckcdigital.models.LoginRequest
 import com.example.doanltdd_ckcdigital.models.ProductModel
+import com.example.doanltdd_ckcdigital.models.RegisterRequest
 import com.example.doanltdd_ckcdigital.models.Review
 import com.example.doanltdd_ckcdigital.models.ReviewResponse
+import com.example.doanltdd_ckcdigital.models.UserModel
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -17,9 +19,6 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
-
-    @POST("api/auth/login")
-    suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
     @GET("api/products")
     suspend fun getProducts(): ApiResponse<List<ProductModel>>
 
@@ -31,6 +30,15 @@ interface ApiService {
 
     @GET("api/products/{id}/reviews")
     suspend fun getProductReviews(@Path("id") productId: Int): ApiResponse<List<Review>>
+
+    @POST("api/auth/login")
+    suspend fun login(@Body request: LoginRequest): AuthResponse
+
+    @POST("api/auth/register")
+    suspend fun register(@Body request: RegisterRequest): AuthResponse
+
+    @POST("api/auth/logout")
+    suspend fun logout(): ApiResponse<Unit>
 }
 
 object RetrofitClient {

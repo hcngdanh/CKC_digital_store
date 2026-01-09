@@ -60,13 +60,7 @@ fun LoginScreen(
         }
     }
 
-    fun handleLogin() {
-        if (email.isBlank() || password.isBlank()) {
-            Toast.makeText(context, "Vui lòng nhập đầy đủ thông tin!", Toast.LENGTH_SHORT).show()
-            return
-        }
-        viewModel.login(email, password)
-    }
+
 
     Scaffold(
         containerColor = Color.Black,
@@ -166,6 +160,9 @@ fun LoginScreen(
                     cursorColor = Color(0xFFFFFFFF)
                 )
             )
+            if (viewModel.loginError.isNotEmpty()) {
+                Text(viewModel.loginError, color = Color.Red, modifier = Modifier.padding(8.dp))
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -178,7 +175,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = { handleLogin() },
+                onClick = { viewModel.login(email, password, onLoginSuccess = onNavigateToHome) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),

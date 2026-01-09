@@ -15,15 +15,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.doanltdd_ckcdigital.utils.UserSession
+import com.example.doanltdd_ckcdigital.viewmodels.SessionManager
+
+// Thêm import cho UserModel
+import com.example.doanltdd_ckcdigital.models.UserModel
 
 @Composable
 fun ProfileScreen(
+    user: UserModel?,
     onBackClick: () -> Unit,
     onLogoutClick: () -> Unit
 ) {
-    val user = UserSession.user
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -70,20 +72,25 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // User Info
+            // User Info - Hiển thị dữ liệu từ object user
             if (user != null) {
-                // SỬA LỖI 1: Đổi thành chữ thường (nếu model của bạn là fullName)
-                // Nếu vẫn lỗi đỏ, bạn hãy mở file User.kt để xem tên chính xác là gì nhé
+                // Sử dụng chính xác tên cột trong Database/Model của bạn (FullName, Email)
                 Text(
-                    text = user.fullName ?: "Người dùng",
+                    text = user.FullName ?: "Người dùng",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = user.email ?: "email@example.com",
+                    text = user.Email ?: "Không có email",
                     fontSize = 16.sp,
+                    color = Color.Gray
+                )
+                // Hiển thị thêm số điện thoại nếu cần
+                Text(
+                    text = "SĐT: ${user.Phone ?: "Chưa cập nhật"}",
+                    fontSize = 14.sp,
                     color = Color.Gray
                 )
             } else {
@@ -98,7 +105,6 @@ fun ProfileScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
-                // SỬA LỖI 2: Dùng Icons.AutoMirrored.Outlined.ExitToApp
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.ExitToApp,
                     contentDescription = null,

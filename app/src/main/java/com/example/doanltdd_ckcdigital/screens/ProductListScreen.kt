@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.doanltdd_ckcdigital.models.ProductModel
+import com.example.doanltdd_ckcdigital.models.UserModel
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
 import com.example.doanltdd_ckcdigital.utils.CartManager
 import com.example.doanltdd_ckcdigital.utils.CartManager.cartCount
@@ -46,7 +47,9 @@ import java.util.Locale
 fun ProductListScreen(
     onProductClick: (Int) -> Unit,
     onCartClick: () -> Unit,
-    onProfileClick: ()-> Unit
+    onProfileClick: ()-> Unit,
+    user: UserModel?, // Thêm tham số này
+    onLogout: () -> Unit,
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
@@ -153,7 +156,7 @@ fun ProductListScreen(
                             )
                         },
                         actions = {
-                            IconButton(onClick = { onProfileClick }) { Icon(Icons.Outlined.Person, null, tint = Color.White) }
+                            IconButton(onClick = { onProfileClick() }) { Icon(Icons.Outlined.Person, null, tint = Color.White) }
 
                             BadgedBox(
                                 badge = {

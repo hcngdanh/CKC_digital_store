@@ -2,6 +2,7 @@ package com.example.doanltdd_ckcdigital.navigation
 
 import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -21,14 +22,24 @@ import com.example.doanltdd_ckcdigital.screens.ProfileScreen
 import com.example.doanltdd_ckcdigital.screens.RegisterScreen
 import com.example.doanltdd_ckcdigital.screens.SplashScreen
 import com.example.doanltdd_ckcdigital.utils.CartManager
-import com.example.doanltdd_ckcdigital.utils.UserSession
 import com.example.doanltdd_ckcdigital.viewmodels.AuthViewModel
+import com.example.doanltdd_ckcdigital.viewmodels.SessionManager
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun AppNavGraph() {
     val navController = rememberNavController()
     val context = LocalContext.current
-    val authViewModel: AuthViewModel = viewModel()
+    val sessionManager = remember { SessionManager(context) }
+    val authViewModel: AuthViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return AuthViewModel(sessionManager) as T
+            }
+        }
+    )
 
     NavHost(
         navController = navController,
@@ -46,6 +57,13 @@ fun AppNavGraph() {
         // 2. Danh sách sản phẩm (Trang chủ)
         composable("product_list") {
             ProductListScreen(
+                user = sessionManager.getUser(),
+                onLogout = {
+                    sessionManager.clearSession()
+                    navController.navigate("login") {
+                        popUpTo("product_list") { inclusive = true }
+                    }
+                },
                 onProductClick = { productId ->
                     navController.navigate("product_detail/$productId")
                 },
@@ -53,8 +71,7 @@ fun AppNavGraph() {
                     navController.navigate("cart")
                 },
                 onProfileClick = {
-                    // Logic: Nếu đã đăng nhập -> Vào Profile, ngược lại -> Vào Login
-                    if (UserSession.isLoggedIn) {
+                    if (sessionManager.isLoggedIn()) {
                         navController.navigate("profile")
                     } else {
                         Toast.makeText(context, "Vui lòng đăng nhập", Toast.LENGTH_SHORT).show()
@@ -76,10 +93,10 @@ fun AppNavGraph() {
                     onBackClick = { navController.popBackStack() },
                     onCartClick = { navController.navigate("cart") },
                     onBuyNowClick = {
-                        if (UserSession.isLoggedIn) {
+                        if (sessionManager.isLoggedIn()) {
                             navController.navigate("checkout")
                         } else {
-                            Toast.makeText(context, "Vui lòng đăng nhập để mua hàng", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Vui lòng đăng nhập", Toast.LENGTH_SHORT).show()
                             navController.navigate("login")
                         }
                     },
@@ -96,10 +113,10 @@ fun AppNavGraph() {
             CartScreen(
                 onBackClick = { navController.popBackStack() },
                 onCheckoutClick = {
-                    if (UserSession.isLoggedIn) {
+                    if (sessionManager.isLoggedIn()) {
                         navController.navigate("checkout")
                     } else {
-                        Toast.makeText(context, "Vui lòng đăng nhập để thanh toán", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Vui lòng đăng nhập", Toast.LENGTH_SHORT).show()
                         navController.navigate("login")
                     }
                 }
@@ -125,7 +142,7 @@ fun AppNavGraph() {
                 viewModel = authViewModel,
                 onNavigateToHome = {
                     navController.navigate("product_list") {
-                        popUpTo("login") { inclusive = true }
+                        popUpTo("login") { inclusive = true } // Xóa login khỏi stack
                     }
                 },
                 onNavigateToRegister = {
@@ -180,15 +197,13 @@ fun AppNavGraph() {
         composable("order_detail") {
             OrderDetailScreen()
         }
-        composable("profile") {
+
+        composable(route = "profile") {
             ProfileScreen(
+                user = sessionManager.getUser(), // Lấy thông tin user từ SessionManager
                 onBackClick = { navController.popBackStack() },
                 onLogoutClick = {
-                    // Xử lý đăng xuất
-                    UserSession.user = null
-                    Toast.makeText(context, "Đã đăng xuất", Toast.LENGTH_SHORT).show()
-
-                    // Quay về trang chủ và xóa backstack để tránh back lại profile
+                    sessionManager.clearSession() // Xóa session khi đăng xuất
                     navController.navigate("product_list") {
                         popUpTo("product_list") { inclusive = true }
                     }
