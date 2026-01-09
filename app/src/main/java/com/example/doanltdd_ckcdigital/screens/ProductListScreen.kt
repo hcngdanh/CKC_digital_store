@@ -1,5 +1,6 @@
 package com.example.doanltdd_ckcdigital.screens
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -108,7 +109,7 @@ fun ProductListScreen(
                 products = response.data
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("API_ERROR", "Lỗi kết nối: ${e.message}") // Xem lỗi ở Logcat
         } finally {
             isLoading = false
         }

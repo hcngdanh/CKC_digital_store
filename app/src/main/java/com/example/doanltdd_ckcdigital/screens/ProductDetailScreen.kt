@@ -29,6 +29,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
+import com.example.doanltdd_ckcdigital.models.Review
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,6 +43,7 @@ fun ProductDetailScreen(
     var product by remember { mutableStateOf<ProductModel?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
+    var reviews by remember { mutableStateOf<List<Review>>(emptyList()) }
 
     LaunchedEffect(productId) {
         try {
@@ -49,6 +51,11 @@ fun ProductDetailScreen(
             val response = RetrofitClient.apiService.getProductDetail(productId)
             if (response.success) {
                 product = response.data
+            }
+
+            val reviewRes = RetrofitClient.apiService.getProductReviews(productId)
+            if (reviewRes.success) {
+                reviews = reviewRes.data
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -316,6 +323,38 @@ fun ProductDetailScreen(
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
+
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = "Đánh giá từ khách hàng",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+
+                    if (reviews.isEmpty()) {
+                        Text(
+                            text = "Sản phẩm này chưa có đánh giá nào.",
+                            fontSize = 14.sp,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    } else {
+                        reviews.forEach { review ->
+                            ReviewItem(review)
+                            HorizontalDivider(
+                                color = Color(0xFFEEEEEE),
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -375,5 +414,49 @@ fun BottomActionBar(
                 Text("MUA NGAY", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
         }
+    }
+}
+
+@Composable
+fun ReviewItem(review: Review) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = review.UserName,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                color = Color.Black
+            )
+            // Hiển thị số sao
+            Row {
+                repeat(5) { index ->
+                    Text(
+                        text = "★",
+                        color = if (index < review.Rating) Color(0xFFFFB400) else Color.LightGray,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+        }
+
+        Text(
+            text = review.ReviewDate.split("T")[0],
+            fontSize = 11.sp,
+            color = Color.Gray,
+            modifier = Modifier.padding(vertical = 2.dp)
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = review.Comment,
+            fontSize = 14.sp,
+            color = Color.DarkGray,
+            lineHeight = 20.sp
+        )
     }
 }

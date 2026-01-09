@@ -5,6 +5,8 @@ import com.example.doanltdd_ckcdigital.models.AuthResponse
 import com.example.doanltdd_ckcdigital.models.CategoryModel
 import com.example.doanltdd_ckcdigital.models.LoginRequest
 import com.example.doanltdd_ckcdigital.models.ProductModel
+import com.example.doanltdd_ckcdigital.models.Review
+import com.example.doanltdd_ckcdigital.models.ReviewResponse
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -18,7 +20,7 @@ interface ApiService {
 
     @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
-    @GET("api/auth/products")
+    @GET("api/products")
     suspend fun getProducts(): ApiResponse<List<ProductModel>>
 
     @GET("api/categories")
@@ -26,10 +28,13 @@ interface ApiService {
 
     @GET("api/products/{id}")
     suspend fun getProductDetail(@Path("id") id: Int): ApiResponse<ProductModel>
+
+    @GET("api/products/{id}/reviews")
+    suspend fun getProductReviews(@Path("id") productId: Int): ApiResponse<List<Review>>
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "https://server-api-doan.onrender.com"
+    private const val BASE_URL = "http://10.0.2.2:3000/"
 
     val apiService: ApiService by lazy {
         Retrofit.Builder()

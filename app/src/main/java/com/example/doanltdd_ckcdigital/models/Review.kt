@@ -1,9 +1,15 @@
 package com.example.doanltdd_ckcdigital.models
 
-data class ReviewApi(
+data class Review(
     val ReviewID: Int,
-    val FullName: String,
+    val UserName: String,
+    val AvatarURL: String?,
     val Rating: Int,
     val Comment: String,
-    val CreatedAt: String
+    val ReviewDate: String
+)
+
+data class ReviewResponse(
+    val success: Boolean,
+    val data: List<Review>
 )
