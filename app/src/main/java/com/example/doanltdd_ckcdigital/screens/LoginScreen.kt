@@ -129,11 +129,11 @@ fun LoginScreen(
                     unfocusedContainerColor = Color.Transparent,
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
-                    focusedIndicatorColor = Color(0xFFFF4D1C),
+                    focusedIndicatorColor = Color(0xFFFFFFFF),
                     unfocusedIndicatorColor = Color.Gray,
-                    focusedLabelColor = Color(0xFFFF4D1C),
+                    focusedLabelColor = Color(0xFFFFFFFF),
                     unfocusedLabelColor = Color.Gray,
-                    cursorColor = Color(0xFFFF4D1C)
+                    cursorColor = Color(0xFFFFFFFF)
                 )
             )
 
