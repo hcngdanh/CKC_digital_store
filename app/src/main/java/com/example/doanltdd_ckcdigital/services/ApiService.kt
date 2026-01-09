@@ -16,9 +16,9 @@ import retrofit2.http.Query
 
 interface ApiService {
 
-    @POST("api/login")
+    @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
-    @GET("api/products")
+    @GET("api/auth/products")
     suspend fun getProducts(): ApiResponse<List<ProductModel>>
 
     @GET("api/categories")
