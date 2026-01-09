@@ -214,15 +214,35 @@ fun ProductDetailScreen(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 12.dp)
                     )
-                    SpecRow(label = "Ngàm ống kính", value = product!!.LensMount ?: "Đang cập nhật")
-                    HorizontalDivider(color = Color(0xFFEEEEEE))
-                    SpecRow(label = "Kích thước sensor", value = product!!.SensorType ?: "Đang cập nhật")
-                    HorizontalDivider(color = Color(0xFFEEEEEE))
-                    SpecRow(label = "Độ phân giải", value = product!!.Resolution ?: "Đang cập nhật")
-                    HorizontalDivider(color = Color(0xFFEEEEEE))
-                    SpecRow(label = "Vi xử lý", value = product!!.Processor ?: "Đang cập nhật")
-                    HorizontalDivider(color = Color(0xFFEEEEEE))
+                    val categoryId = product!!.CategoryID
+                    val isBody = categoryId == 1 || categoryId == 6 || categoryId == 7
+                    val isLens = categoryId == 2 || categoryId in 8..10
+                    if (isBody || isLens) {
+                        SpecRow(label = "Ngàm ống kính", value = product!!.LensMount ?: "Đang cập nhật")
+                        HorizontalDivider(color = Color(0xFFEEEEEE))
+                    }
+                    if (isBody) {
+                        SpecRow(label = "Kích thước sensor", value = product!!.SensorType ?: "Đang cập nhật")
+                        HorizontalDivider(color = Color(0xFFEEEEEE))
+                    }
+                    val resValue = product!!.Resolution
+                    if (!resValue.isNullOrEmpty()) {
+                        val label = when {
+                            resValue.contains("Bluetooth", true) || resValue.contains("Jack", true) || resValue.contains("USB", true) -> "Kết nối qua"
+                            resValue.contains("mAh", true) || resValue.contains("Wh", true) -> "Dung lượng pin"
+                            resValue.contains("MP", true) -> "Độ phân giải"
+                            resValue.contains("GB", true) || resValue.contains("TB", true) -> "Dung lượng"
+                            else -> "Thông số khác"
+                        }
+                        SpecRow(label = label, value = resValue)
+                        HorizontalDivider(color = Color(0xFFEEEEEE))
+                    }
+                    if (isBody) {
+                        SpecRow(label = "Vi xử lý", value = product!!.Processor ?: "Đang cập nhật")
+                        HorizontalDivider(color = Color(0xFFEEEEEE))
+                    }
                     SpecRow(label = "Bảo hành", value = product!!.WarrantyPeriod ?: "Đang cập nhật")
+                }
 
                 }
 
@@ -253,7 +273,6 @@ fun ProductDetailScreen(
             }
         }
     }
-}
 
 @Composable
 fun SpecRow(label: String, value: String) {
