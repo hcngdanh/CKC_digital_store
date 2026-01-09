@@ -8,12 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,8 +23,6 @@ import coil.compose.AsyncImage
 import com.example.doanltdd_ckcdigital.models.ProductModel
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
 import com.example.doanltdd_ckcdigital.utils.CartManager
-import com.example.doanltdd_ckcdigital.utils.CartManager.cartCount
-import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -109,7 +102,8 @@ fun ProductDetailScreen(
                             }
                         }
                     }
-                )}
+                )
+            }
         },
         bottomBar = {
             BottomActionBar(
@@ -214,22 +208,27 @@ fun ProductDetailScreen(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 12.dp)
                     )
+
                     val categoryId = product!!.CategoryID
                     val isBody = categoryId == 1 || categoryId == 6 || categoryId == 7
                     val isLens = categoryId == 2 || categoryId in 8..10
+
                     if (isBody || isLens) {
                         SpecRow(label = "Ngàm ống kính", value = product!!.LensMount ?: "Đang cập nhật")
                         HorizontalDivider(color = Color(0xFFEEEEEE))
                     }
+
                     if (isBody) {
                         SpecRow(label = "Kích thước sensor", value = product!!.SensorType ?: "Đang cập nhật")
                         HorizontalDivider(color = Color(0xFFEEEEEE))
                     }
+
                     val resValue = product!!.Resolution
                     if (!resValue.isNullOrEmpty()) {
                         val label = when {
                             resValue.contains("Bluetooth", true) || resValue.contains("Jack", true) || resValue.contains("USB", true) -> "Kết nối qua"
                             resValue.contains("mAh", true) || resValue.contains("Wh", true) -> "Dung lượng pin"
+                            resValue.contains("Hz", true) || resValue.contains("dB", true) -> "Tần số/Độ nhạy"
                             resValue.contains("MP", true) -> "Độ phân giải"
                             resValue.contains("GB", true) || resValue.contains("TB", true) -> "Dung lượng"
                             else -> "Thông số khác"
@@ -237,13 +236,13 @@ fun ProductDetailScreen(
                         SpecRow(label = label, value = resValue)
                         HorizontalDivider(color = Color(0xFFEEEEEE))
                     }
+
                     if (isBody) {
                         SpecRow(label = "Vi xử lý", value = product!!.Processor ?: "Đang cập nhật")
                         HorizontalDivider(color = Color(0xFFEEEEEE))
                     }
-                    SpecRow(label = "Bảo hành", value = product!!.WarrantyPeriod ?: "Đang cập nhật")
-                }
 
+                    SpecRow(label = "Bảo hành", value = product!!.WarrantyPeriod ?: "Đang cập nhật")
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -260,8 +259,17 @@ fun ProductDetailScreen(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
+
+                    val description = if (!product!!.FullDescription.isNullOrEmpty()) {
+                        product!!.FullDescription
+                    } else if (!product!!.ShortDescription.isNullOrEmpty()) {
+                        product!!.ShortDescription
+                    } else {
+                        "Chưa có mô tả chi tiết cho sản phẩm này."
+                    }
+
                     Text(
-                        text = product!!.FullDescription ?: "Chưa có mô tả chi tiết cho sản phẩm này.",
+                        text = description ?: "",
                         fontSize = 14.sp,
                         color = Color.DarkGray,
                         lineHeight = 22.sp,
@@ -273,6 +281,7 @@ fun ProductDetailScreen(
             }
         }
     }
+}
 
 @Composable
 fun SpecRow(label: String, value: String) {
@@ -315,7 +324,6 @@ fun BottomActionBar(
             ) {
                 Icon(Icons.Default.ShoppingCart, contentDescription = null, tint = Color(0xFF000000))
             }
-
 
             Button(
                 onClick = onBuyNowClick,
