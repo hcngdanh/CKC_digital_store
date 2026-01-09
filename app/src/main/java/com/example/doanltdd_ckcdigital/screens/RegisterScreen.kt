@@ -1,6 +1,5 @@
 package com.example.doanltdd_ckcdigital.screens
 
-
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,6 +10,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -37,6 +37,7 @@ fun RegisterScreen(
 ) {
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
+    var phoneNumber by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -57,7 +58,7 @@ fun RegisterScreen(
     )
 
     fun handleRegister() {
-        if (fullName.isBlank() || email.isBlank() || password.isBlank()) {
+        if (fullName.isBlank() || email.isBlank() || phoneNumber.isBlank() || password.isBlank()) {
             Toast.makeText(context, "Vui lòng điền đầy đủ thông tin!", Toast.LENGTH_SHORT).show()
             return
         }
@@ -116,7 +117,6 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Họ tên
             OutlinedTextField(
                 value = fullName,
                 onValueChange = { fullName = it },
@@ -128,7 +128,6 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Email
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -141,7 +140,18 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Mật khẩu
+            OutlinedTextField(
+                value = phoneNumber,
+                onValueChange = { phoneNumber = it },
+                label = { Text("Số điện thoại") },
+                leadingIcon = { Icon(Icons.Default.Phone, null, tint = Color.Gray) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                colors = textFieldColors
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -160,7 +170,6 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Xác nhận mật khẩu
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
