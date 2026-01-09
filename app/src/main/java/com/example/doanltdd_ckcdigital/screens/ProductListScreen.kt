@@ -152,7 +152,7 @@ fun ProductListScreen(
                             )
                         },
                         actions = {
-                            IconButton(onClick = { onProfileClick() }) { Icon(Icons.Outlined.Person, null, tint = Color.White) }
+                            IconButton(onClick = { onProfileClick }) { Icon(Icons.Outlined.Person, null, tint = Color.White) }
 
                             BadgedBox(
                                 badge = {
@@ -569,10 +569,7 @@ fun SideMenuContent(onItemClick: (String) -> Unit) {
         )
         HorizontalDivider(color = Color(0xFFEEEEEE))
 
-        Text("PHỤ KIỆN", modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onItemClick("PHỤ KIỆN") }
-            .padding(16.dp), fontSize = 14.sp,fontWeight = FontWeight.Bold)
+        Text("PHỤ KIỆN", modifier = Modifier.fillMaxWidth().clickable { onItemClick("PHỤ KIỆN") }.padding(16.dp), fontSize = 14.sp)
         HorizontalDivider(color = Color(0xFFEEEEEE))
     }
 }

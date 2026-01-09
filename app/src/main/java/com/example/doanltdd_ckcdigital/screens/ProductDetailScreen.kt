@@ -25,6 +25,10 @@ import com.example.doanltdd_ckcdigital.services.RetrofitClient
 import com.example.doanltdd_ckcdigital.utils.CartManager
 import java.text.NumberFormat
 import java.util.Locale
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -139,21 +143,56 @@ fun ProductDetailScreen(
                     .background(Color(0xFFF5F5F5))
                     .verticalScroll(rememberScrollState())
             ) {
+                val images = remember(product) {
+                    val list = mutableListOf<String>()
+                    // Thêm ảnh thumbnail vào đầu danh sách nếu có
+                    product?.ThumbnailURL?.let { list.add(it) }
+                    // Thêm toàn bộ danh sách Gallery vào sau
+                    product?.Gallery?.let { list.addAll(it) }
+                    list
+                }
+
+                val pagerState = rememberPagerState(pageCount = { images.size })
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.White)
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
+                        .padding(vertical = 16.dp),
+                    contentAlignment = Alignment.BottomCenter
                 ) {
-                    AsyncImage(
-                        model = product!!.ThumbnailURL,
-                        contentDescription = product!!.ProductName,
+                    HorizontalPager(
+                        state = pagerState,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(300.dp),
-                        contentScale = ContentScale.Fit
-                    )
+                            .height(300.dp)
+                    ) { page ->
+                        AsyncImage(
+                            model = images[page],
+                            contentDescription = product!!.ProductName,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+
+                    Row(
+                        Modifier
+                            .wrapContentHeight()
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        repeat(pagerState.pageCount) { iteration ->
+                            val color = if (pagerState.currentPage == iteration) Color.DarkGray else Color.LightGray
+                            Box(
+                                modifier = Modifier
+                                    .padding(2.dp)
+                                    .clip(CircleShape)
+                                    .background(color)
+                                    .size(8.dp)
+                            )
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -259,17 +298,16 @@ fun ProductDetailScreen(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
-
                     val description = if (!product!!.FullDescription.isNullOrEmpty()) {
-                        product!!.FullDescription
-                    } else if (!product!!.ShortDescription.isNullOrEmpty()) {
                         product!!.ShortDescription
+                    } else if (!product!!.ShortDescription.isNullOrEmpty()) {
+                        product!!.FullDescription
                     } else {
                         "Chưa có mô tả chi tiết cho sản phẩm này."
                     }
 
                     Text(
-                        text = description ?: "",
+                        text = product!!.FullDescription.toString(),
                         fontSize = 14.sp,
                         color = Color.DarkGray,
                         lineHeight = 22.sp,
