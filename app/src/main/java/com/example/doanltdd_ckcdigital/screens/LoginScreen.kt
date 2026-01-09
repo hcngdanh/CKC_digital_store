@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.doanltdd_ckcdigital.viewmodels.AuthViewModel
+import com.example.doanltdd_ckcdigital.viewmodels.LoginState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,27 +40,32 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
 
+    val loginState by viewModel.loginState.collectAsState()
     val context = LocalContext.current
+
+    LaunchedEffect(loginState) {
+        when (loginState) {
+            is LoginState.Success -> {
+                Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
+                onNavigateToHome()
+                viewModel.resetState()
+            }
+            is LoginState.Error -> {
+                val errorMsg = (loginState as LoginState.Error).message
+                Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                viewModel.resetState()
+            }
+            else -> {}
+        }
+    }
 
     fun handleLogin() {
         if (email.isBlank() || password.isBlank()) {
             Toast.makeText(context, "Vui lòng nhập đầy đủ thông tin!", Toast.LENGTH_SHORT).show()
             return
         }
-
-        isLoading = true
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            isLoading = false
-            if (email == "admin@gmail.com" && password == "123456") {
-                Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
-                viewModel.login()
-                onNavigateToHome()
-            } else {
-                Toast.makeText(context, "Sai email hoặc mật khẩu!", Toast.LENGTH_SHORT).show()
-            }
-        }, 1500)
+        viewModel.login(email, password)
     }
 
     Scaffold(
@@ -178,10 +184,10 @@ fun LoginScreen(
                     .height(50.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFFFFF)),
-                enabled = !isLoading
+                enabled = loginState !is LoginState.Loading
             ) {
-                if (isLoading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                if (loginState is LoginState.Loading) {
+                    CircularProgressIndicator(color = Color.Black, modifier = Modifier.size(24.dp))
                 } else {
                     Text("ĐĂNG NHẬP", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 }
