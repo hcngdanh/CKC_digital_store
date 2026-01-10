@@ -1,35 +1,27 @@
 package com.example.doanltdd_ckcdigital.screens
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.pager.*
+import androidx.compose.foundation.shape.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
 import coil.compose.AsyncImage
-import com.example.doanltdd_ckcdigital.models.ProductModel
+import com.example.doanltdd_ckcdigital.models.*
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
 import com.example.doanltdd_ckcdigital.utils.CartManager
 import java.text.NumberFormat
 import java.util.Locale
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.draw.clip
-import com.example.doanltdd_ckcdigital.models.Review
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,26 +29,24 @@ fun ProductDetailScreen(
     productId: Int,
     onBackClick: () -> Unit,
     onCartClick: () -> Unit,
-    onBuyNowClick: () -> Unit,
+    onBuyNowClick: (ProductModel) -> Unit,
     onAddToCart: (ProductModel) -> Unit
 ) {
+    // --- 1. Khai báo State ---
     var product by remember { mutableStateOf<ProductModel?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
-    val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
     var reviews by remember { mutableStateOf<List<Review>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
 
+    // --- 2. Gọi API lấy dữ liệu (Sử dụng LaunchedEffect) ---
     LaunchedEffect(productId) {
         try {
             isLoading = true
-            val response = RetrofitClient.apiService.getProductDetail(productId)
-            if (response.success) {
-                product = response.data
-            }
+            val productRes = RetrofitClient.apiService.getProductDetail(productId)
+            if (productRes.success) product = productRes.data
 
             val reviewRes = RetrofitClient.apiService.getProductReviews(productId)
-            if (reviewRes.success) {
-                reviews = reviewRes.data
-            }
+            if (reviewRes.success) reviews = reviewRes.data
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
@@ -66,50 +56,32 @@ fun ProductDetailScreen(
 
     Scaffold(
         topBar = {
-            Column(
-                modifier = Modifier
-                    .background(Color.Black)
-                    .statusBarsPadding()
-            ) {
+            // --- 3. Thanh tiêu đề (TopAppBar) ---
+            Column(modifier = Modifier.background(Color.Black).statusBarsPadding()) {
                 CenterAlignedTopAppBar(
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = Color.Black
-                    ),
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Black),
                     navigationIcon = {
-                        IconButton(
-                            onClick = { onBackClick() },
-                            modifier = Modifier.padding(start = 8.dp).size(40.dp)
-                        ) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White, modifier = Modifier.size(25.dp))
+                        IconButton(onClick = onBackClick) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
                         }
                     },
                     title = {
                         AsyncImage(
                             model = "https://res.cloudinary.com/dczhi464d/image/upload/v1767096256/shoplogo_new_fi45zg.png",
-                            contentDescription = "CKC Digital Logo",
+                            contentDescription = "Logo",
                             modifier = Modifier.height(35.dp),
                             contentScale = ContentScale.Fit
                         )
                     },
                     actions = {
-                        BadgedBox(
-                            badge = {
-                                if (CartManager.badgeCartCount > 0) {
-                                    Badge(
-                                        containerColor = Color.Red,
-                                        contentColor = Color.White
-                                    ) {
-                                        Text(text = CartManager.badgeCartCount.toString())
-                                    }
-                                }
+                        // Badge hiển thị số lượng giỏ hàng
+                        BadgedBox(badge = {
+                            if (CartManager.badgeCartCount > 0) {
+                                Badge(containerColor = Color.Red) { Text(CartManager.badgeCartCount.toString()) }
                             }
-                        ) {
-                            IconButton(onClick = { onCartClick() }) {
-                                Icon(
-                                    imageVector = Icons.Default.ShoppingCart,
-                                    contentDescription = "Giỏ hàng",
-                                    tint = Color.White
-                                )
+                        }) {
+                            IconButton(onClick = onCartClick) {
+                                Icon(Icons.Default.ShoppingCart, "Cart", tint = Color.White)
                             }
                         }
                     }
@@ -117,30 +89,22 @@ fun ProductDetailScreen(
             }
         },
         bottomBar = {
+            // --- 4. Thanh hành động (Mua ngay / Thêm giỏ hàng) ---
             BottomActionBar(
                 product = product,
                 onBuyNowClick = onBuyNowClick,
-                onAddToCart = {
-                    if (product != null) {
-                        onAddToCart(product!!)
-                    }
-                }
+                onAddToCart = { product?.let { onAddToCart(it) } }
             )
         }
     ) { innerPadding ->
+        // --- 5. Nội dung chính ---
         if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(Modifier.fillMaxSize().padding(innerPadding), Alignment.Center) {
                 CircularProgressIndicator(color = Color.Black)
             }
         } else if (product == null) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Không tìm thấy thông tin sản phẩm", color = Color.Gray)
+            Box(Modifier.fillMaxSize().padding(innerPadding), Alignment.Center) {
+                Text("Không tìm thấy sản phẩm", color = Color.Gray)
             }
         } else {
             Column(
@@ -150,209 +114,88 @@ fun ProductDetailScreen(
                     .background(Color(0xFFF5F5F5))
                     .verticalScroll(rememberScrollState())
             ) {
+                // --- 6. Slideshow Ảnh sản phẩm ---
                 val images = remember(product) {
-                    val list = mutableListOf<String>()
-                    // Thêm ảnh thumbnail vào đầu danh sách nếu có
-                    product?.ThumbnailURL?.let { list.add(it) }
-                    // Thêm toàn bộ danh sách Gallery vào sau
-                    product?.Gallery?.let { list.addAll(it) }
-                    list
+                    mutableListOf<String>().apply {
+                        product?.ThumbnailURL?.let { add(it) }
+                        product?.Gallery?.let { addAll(it) }
+                    }
                 }
-
                 val pagerState = rememberPagerState(pageCount = { images.size })
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                        .padding(vertical = 16.dp),
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp)
-                    ) { page ->
+                Box(Modifier.fillMaxWidth().background(Color.White).padding(vertical = 16.dp)) {
+                    HorizontalPager(state = pagerState, modifier = Modifier.height(300.dp)) { page ->
                         AsyncImage(
                             model = images[page],
-                            contentDescription = product!!.ProductName,
+                            contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Fit
                         )
                     }
-
-                    Row(
-                        Modifier
-                            .wrapContentHeight()
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        repeat(pagerState.pageCount) { iteration ->
-                            val color = if (pagerState.currentPage == iteration) Color.DarkGray else Color.LightGray
-                            Box(
-                                modifier = Modifier
-                                    .padding(2.dp)
-                                    .clip(CircleShape)
-                                    .background(color)
-                                    .size(8.dp)
-                            )
+                    // Indicator (Dấu chấm chuyển trang)
+                    Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp)) {
+                        repeat(pagerState.pageCount) { i ->
+                            val color = if (pagerState.currentPage == i) Color.DarkGray else Color.LightGray
+                            Box(Modifier.padding(2.dp).clip(CircleShape).background(color).size(8.dp))
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                // --- 7. Thông tin cơ bản (Tên, Giá) ---
+                Column(Modifier.fillMaxWidth().background(Color.White).padding(16.dp)) {
+                    Text(product!!.ProductName, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(8.dp))
+                    Text(formatter.format(product!!.Price), fontSize = 24.sp, color = Color(0xFFD32F2F), fontWeight = FontWeight.ExtraBold)
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = product!!.ProductName,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = 28.sp,
-                        color = Color.Black
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = formatter.format(product!!.Price),
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color(0xFFD32F2F)
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(Modifier.height(12.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Surface(color = Color(0xFFE8F5E9), shape = RoundedCornerShape(4.dp)) {
-                            Text(
-                                text = "Còn hàng",
-                                color = Color(0xFF2E7D32),
-                                fontSize = 12.sp,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                fontWeight = FontWeight.Bold
-                            )
+                            Text("Còn hàng", color = Color(0xFF2E7D32), fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(Modifier.width(8.dp))
                         Text("Chính hãng Sony Việt Nam", fontSize = 12.sp, color = Color.Gray)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Thông số kỹ thuật",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
+                // --- 8. Thông số kỹ thuật (Dynamic dựa theo Category) ---
+                Spacer(Modifier.height(8.dp))
+                Column(Modifier.fillMaxWidth().background(Color.White).padding(16.dp)) {
+                    Text("Thông số kỹ thuật", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Spacer(Modifier.height(12.dp))
 
                     val categoryId = product!!.CategoryID
-                    val isBody = categoryId == 1 || categoryId == 6 || categoryId == 7
-                    val isLens = categoryId == 2 || categoryId in 8..10
-
-                    if (isBody || isLens) {
-                        SpecRow(label = "Ngàm ống kính", value = product!!.LensMount ?: "Đang cập nhật")
+                    if (categoryId in listOf(1, 6, 7, 2, 8, 9, 10)) {
+                        SpecRow("Ngàm ống kính", product!!.LensMount ?: "N/A")
                         HorizontalDivider(color = Color(0xFFEEEEEE))
                     }
-
-                    if (isBody) {
-                        SpecRow(label = "Kích thước sensor", value = product!!.SensorType ?: "Đang cập nhật")
+                    if (categoryId in listOf(1, 6, 7)) {
+                        SpecRow("Cảm biến", product!!.SensorType ?: "N/A")
                         HorizontalDivider(color = Color(0xFFEEEEEE))
                     }
-
-                    val resValue = product!!.Resolution
-                    if (!resValue.isNullOrEmpty()) {
-                        val label = when {
-                            resValue.contains("Bluetooth", true) || resValue.contains("Jack", true) || resValue.contains("USB", true) -> "Kết nối qua"
-                            resValue.contains("mAh", true) || resValue.contains("Wh", true) -> "Dung lượng pin"
-                            resValue.contains("Hz", true) || resValue.contains("dB", true) -> "Tần số/Độ nhạy"
-                            resValue.contains("MP", true) -> "Độ phân giải"
-                            resValue.contains("GB", true) || resValue.contains("TB", true) -> "Dung lượng"
-                            else -> "Thông số khác"
-                        }
-                        SpecRow(label = label, value = resValue)
-                        HorizontalDivider(color = Color(0xFFEEEEEE))
-                    }
-
-                    if (isBody) {
-                        SpecRow(label = "Vi xử lý", value = product!!.Processor ?: "Đang cập nhật")
-                        HorizontalDivider(color = Color(0xFFEEEEEE))
-                    }
-
-                    SpecRow(label = "Bảo hành", value = product!!.WarrantyPeriod ?: "Đang cập nhật")
+                    product!!.Resolution?.let { SpecRow("Chi tiết", it) }
+                    HorizontalDivider(color = Color(0xFFEEEEEE))
+                    SpecRow("Bảo hành", product!!.WarrantyPeriod ?: "N/A")
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                        .padding(16.dp)
-                ) {
+                // --- 9. Mô tả chi tiết ---
+                Spacer(Modifier.height(8.dp))
+                Column(Modifier.fillMaxWidth().background(Color.White).padding(16.dp)) {
+                    Text("Mô tả sản phẩm", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Mô tả sản phẩm",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    val description = if (!product!!.FullDescription.isNullOrEmpty()) {
-                        product!!.ShortDescription
-                    } else if (!product!!.ShortDescription.isNullOrEmpty()) {
-                        product!!.FullDescription
-                    } else {
-                        "Chưa có mô tả chi tiết cho sản phẩm này."
-                    }
-
-                    Text(
-                        text = product!!.FullDescription.toString(),
-                        fontSize = 14.sp,
-                        color = Color.DarkGray,
-                        lineHeight = 22.sp,
-                        textAlign = TextAlign.Justify
+                        text = product!!.FullDescription ?: "Chưa có mô tả",
+                        fontSize = 14.sp, color = Color.DarkGray, lineHeight = 22.sp
                     )
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
-
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Đánh giá từ khách hàng",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
-
+                // --- 10. Phần Đánh giá (Reviews) ---
+                Spacer(Modifier.height(8.dp))
+                Column(Modifier.fillMaxWidth().background(Color.White).padding(16.dp)) {
+                    Text("Đánh giá khách hàng", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     if (reviews.isEmpty()) {
-                        Text(
-                            text = "Sản phẩm này chưa có đánh giá nào.",
-                            fontSize = 14.sp,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
+                        Text("Chưa có đánh giá nào", color = Color.Gray, modifier = Modifier.padding(vertical = 12.dp))
                     } else {
-                        reviews.forEach { review ->
-                            ReviewItem(review)
-                            HorizontalDivider(
-                                color = Color(0xFFEEEEEE),
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            )
-                        }
+                        reviews.forEach { ReviewItem(it) }
                     }
                 }
             }
@@ -360,103 +203,53 @@ fun ProductDetailScreen(
     }
 }
 
+// --- Component dòng thông số kỹ thuật ---
 @Composable
 fun SpecRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(text = label, color = Color.Gray, fontSize = 14.sp, modifier = Modifier.weight(1f))
-        Text(text = value, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(2f), textAlign = TextAlign.End)
+    Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), Arrangement.SpaceBetween) {
+        Text(label, color = Color.Gray, fontSize = 14.sp, modifier = Modifier.weight(1f))
+        Text(value, fontWeight = FontWeight.Medium, textAlign = TextAlign.End, modifier = Modifier.weight(2f))
     }
 }
 
-
+// --- Component thanh hành động dưới cùng ---
 @Composable
-fun BottomActionBar(
-    product: ProductModel?,
-    onBuyNowClick: () -> Unit,
-    onAddToCart: () -> Unit
-) {
-    Surface(
-        shadowElevation = 16.dp,
-        color = Color.White
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp)
-                .navigationBarsPadding(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+fun BottomActionBar(product: ProductModel?, onBuyNowClick: (ProductModel) -> Unit, onAddToCart: () -> Unit) {
+    Surface(shadowElevation = 8.dp, color = Color.White) {
+        Row(Modifier.fillMaxWidth().padding(12.dp).navigationBarsPadding(), Arrangement.spacedBy(12.dp)) {
             OutlinedButton(
                 onClick = onAddToCart,
-                shape = RoundedCornerShape(4.dp),
-                border = BorderStroke(1.dp, Color(0xFF050505)),
                 modifier = Modifier.height(48.dp),
+                shape = RoundedCornerShape(4.dp),
                 enabled = product != null
-            ) {
-                Icon(Icons.Default.ShoppingCart, contentDescription = null, tint = Color(0xFF000000))
-            }
+            ) { Icon(Icons.Default.ShoppingCart, null, tint = Color.Black) }
 
             Button(
-                onClick = onBuyNowClick,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000000)),
+                onClick = { product?.let { onBuyNowClick(it) } },
+                modifier = Modifier.weight(1f).height(48.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
                 shape = RoundedCornerShape(4.dp),
                 enabled = product != null
-            ) {
-                Text("MUA NGAY", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            }
+            ) { Text("MUA NGAY", fontWeight = FontWeight.Bold) }
         }
     }
 }
 
+// --- Component hiển thị một mục đánh giá ---
 @Composable
 fun ReviewItem(review: Review) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = review.UserName,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                color = Color.Black
-            )
-            // Hiển thị số sao
+    Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
+            Text(review.UserName, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Row {
-                repeat(5) { index ->
-                    Text(
-                        text = "★",
-                        color = if (index < review.Rating) Color(0xFFFFB400) else Color.LightGray,
-                        fontSize = 14.sp
-                    )
+                repeat(5) { i ->
+                    Text("★", color = if (i < review.Rating) Color(0xFFFFB400) else Color.LightGray)
                 }
             }
         }
-
-        Text(
-            text = review.ReviewDate.split("T")[0],
-            fontSize = 11.sp,
-            color = Color.Gray,
-            modifier = Modifier.padding(vertical = 2.dp)
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = review.Comment,
-            fontSize = 14.sp,
-            color = Color.DarkGray,
-            lineHeight = 20.sp
-        )
+        Text(review.ReviewDate.split("T")[0], fontSize = 11.sp, color = Color.Gray)
+        Spacer(Modifier.height(4.dp))
+        Text(review.Comment, fontSize = 14.sp, color = Color.DarkGray)
+        HorizontalDivider(Modifier.padding(top = 8.dp), color = Color(0xFFEEEEEE))
     }
 }

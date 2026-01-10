@@ -26,3 +26,11 @@ data class AuthResponse(
     val message: String,
     val data: UserModel?
 )
+
+data class UserAddress(
+    val id: Int,
+    val name: String,
+    val phone: String,
+    val details: String,
+    val isDefault: Boolean = false
+)

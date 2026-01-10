@@ -1,189 +1,248 @@
 package com.example.doanltdd_ckcdigital.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Payment
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.example.doanltdd_ckcdigital.models.ProductModel
+import com.example.doanltdd_ckcdigital.models.UserModel
+import com.example.doanltdd_ckcdigital.services.RetrofitClient
+import com.example.doanltdd_ckcdigital.utils.CartItem
+import com.example.doanltdd_ckcdigital.utils.CartManager
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckoutScreen(
+    user: UserModel?,
     onBackClick: () -> Unit,
+    onAddressClick: () -> Unit,
+    buyNowProductId: Int,
     onOrderSuccess: () -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
+    var buyNowProduct by remember { mutableStateOf<ProductModel?>(null) }
     var selectedPaymentMethod by remember { mutableStateOf("COD") }
-    var showSuccessDialog by remember { mutableStateOf(false) }
+    val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
 
-    if (showSuccessDialog) {
-        AlertDialog(
-            onDismissRequest = { },
-            icon = { Icon(Icons.Default.CheckCircle, null, tint = Color(0xFF2E7D32), modifier = Modifier.size(48.dp)) },
-            title = { Text("Đặt hàng thành công!") },
-            text = { Text("Cảm ơn bạn đã mua hàng tại CKC Digital. Chúng tôi sẽ liên hệ sớm nhất.") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showSuccessDialog = false
-                        onOrderSuccess()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D1C))
-                ) {
-                    Text("Về trang chủ")
+    LaunchedEffect(buyNowProductId) {
+        if (buyNowProductId != -1) {
+            try {
+                val response = RetrofitClient.apiService.getProductDetail(buyNowProductId)
+                if (response.success) {
+                    buyNowProduct = response.data
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-        )
+        }
     }
+
+    val displayItems = if (buyNowProductId != -1) {
+        buyNowProduct?.let {
+            listOf(CartItem(it, it.ProductID, it.ProductName, it.Price, it.ThumbnailURL, 1))
+        } ?: emptyList()
+    } else {
+        CartManager.cartItems
+    }
+
+    val totalPrice = displayItems.sumOf { it.Price * it.quantity }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Thanh toán", fontWeight = FontWeight.Bold) },
+            CenterAlignedTopAppBar(
+                title = { Text("Thanh toán", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
             )
-        },
-        bottomBar = {
-            Surface(shadowElevation = 16.dp, color = Color.White) {
-                Button(
-                    onClick = {
-                        showSuccessDialog = true
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .height(50.dp)
-                        .navigationBarsPadding(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D1C)),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("XÁC NHẬN ĐẶT HÀNG", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                }
-            }
         }
     ) { padding ->
         Column(
             modifier = Modifier
-                .padding(padding)
                 .fillMaxSize()
+                .padding(padding)
                 .background(Color(0xFFF5F5F5))
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            SectionCard(title = "Thông tin giao hàng", icon = Icons.Default.LocationOn) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Họ và tên") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { phone = it },
-                    label = { Text("Số điện thoại") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = address,
-                    onValueChange = { address = it },
-                    label = { Text("Địa chỉ nhận hàng") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+            Card(
+                onClick = onAddressClick,
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(1.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = null,
+                        tint = Color(0xFFFF4D1C),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = user?.FullName ?: "Người dùng",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "(+84) ${user?.Phone?.removePrefix("0") ?: ""}",
+                                fontSize = 14.sp,
+                                color = Color.Gray
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "81/1 Đường số 18D, Gò Xoài, Phường Bình Hưng Hòa A, Quận Bình Tân, TP. Hồ Chí Minh",
+                            fontSize = 14.sp,
+                            color = Color.DarkGray,
+                            lineHeight = 20.sp
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = Color.LightGray
+                    )
+                }
             }
 
-            SectionCard(title = "Phương thức thanh toán", icon = null) {
-                PaymentOption(
-                    selected = selectedPaymentMethod == "COD",
-                    title = "Thanh toán khi nhận hàng (COD)",
-                    onClick = { selectedPaymentMethod = "COD" }
-                )
-                PaymentOption(
-                    selected = selectedPaymentMethod == "BANK",
-                    title = "Chuyển khoản ngân hàng (QR Code)",
-                    onClick = { selectedPaymentMethod = "BANK" }
-                )
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(2.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.ShoppingCart, null, tint = Color.Gray, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Sản phẩm đã chọn", fontWeight = FontWeight.Bold)
+                    }
+                    displayItems.forEach { item ->
+                        Row(
+                            modifier = Modifier.padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            AsyncImage(
+                                model = item.ThumbnailURL,
+                                contentDescription = null,
+                                modifier = Modifier.size(60.dp).background(Color(0xFFF5F5F5), RoundedCornerShape(4.dp)),
+                                contentScale = ContentScale.Fit
+                            )
+                            Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                                Text(item.ProductName, fontSize = 14.sp, maxLines = 1, fontWeight = FontWeight.Medium)
+                                Text(
+                                    text = "${formatter.format(item.Price)} x ${item.quantity}",
+                                    color = Color.Gray, fontSize = 13.sp
+                                )
+                            }
+                        }
+                        HorizontalDivider(color = Color(0xFFF1F1F1))
+                    }
+                }
             }
 
-            SectionCard(title = "Tóm tắt đơn hàng", icon = null) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Tạm tính", color = Color.Gray)
-                    Text("54.000.000đ", fontWeight = FontWeight.Medium)
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(2.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Payment, null, tint = Color.Gray, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Phương thức thanh toán", fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    val paymentMethods = listOf(
+                        "COD" to "Thanh toán khi nhận hàng (COD)",
+                        "BANK" to "Chuyển khoản ngân hàng (QR Code)",
+                        "MOMO" to "Ví MoMo",
+                        "CARD" to "Visa / Mastercard"
+                    )
+                    paymentMethods.forEach { (id, label) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { selectedPaymentMethod = id }
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = (selectedPaymentMethod == id),
+                                onClick = { selectedPaymentMethod = id },
+                                colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFFF4D1C))
+                            )
+                            Text(label, fontSize = 14.sp)
+                        }
+                    }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Phí vận chuyển", color = Color.Gray)
-                    Text("Miễn phí", color = Color(0xFF2E7D32), fontWeight = FontWeight.Medium)
+            }
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(2.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
+                    Text("Tóm tắt đơn hàng", fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(12.dp))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Tạm tính", color = Color.Gray, fontSize = 14.sp)
+                        Text(formatter.format(totalPrice))
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Phí vận chuyển", color = Color.Gray, fontSize = 14.sp)
+                        Text("Miễn phí", color = Color(0xFF4CAF50))
+                    }
+                    HorizontalDivider(Modifier.padding(vertical = 12.dp))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Tổng cộng", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(
+                            text = formatter.format(totalPrice),
+                            color = Color(0xFFFF4D1C),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+                    }
                 }
-                Divider(Modifier.padding(vertical = 12.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Tổng cộng", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text("54.000.000đ", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFFD32F2F))
-                }
+            }
+
+            Button(
+                onClick = onOrderSuccess,
+                modifier = Modifier.fillMaxWidth().height(54.dp).padding(bottom = 8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D1C)),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("XÁC NHẬN ĐẶT HÀNG", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
         }
-    }
-}
-
-@Composable
-fun SectionCard(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector?, content: @Composable ColumnScope.() -> Unit) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(2.dp),
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (icon != null) {
-                    Icon(icon, null, tint = Color(0xFFFF4D1C), modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
-                Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            }
-            HorizontalDivider(Modifier.padding(vertical = 12.dp), color = Color(0xFFEEEEEE))
-            content()
-        }
-    }
-}
-
-@Composable
-fun PaymentOption(selected: Boolean, title: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .selectable(selected = selected, onClick = onClick)
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        RadioButton(
-            selected = selected,
-            onClick = onClick,
-            colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFFF4D1C))
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(title, fontSize = 14.sp)
     }
 }
