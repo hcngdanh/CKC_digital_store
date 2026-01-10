@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,18 +22,21 @@ import com.example.doanltdd_ckcdigital.models.UserAddress
 @Composable
 fun AddressListScreen(
     onBackClick: () -> Unit,
-    onAddressSelected: (UserAddress) -> Unit
-) {
-    // Dữ liệu mẫu mô phỏng theo hình ảnh
-    val addressList = listOf(
-        UserAddress(1, "Hồ Công Danh", "0866 551 849", "81/1 Đường số 18D, Gò Xoài, Phường Bình Hưng Hòa A, Quận Bình Tân, TP. Hồ Chí Minh", true),
-        UserAddress(2, "Nguyễn Thị Thuỳ Trang", "0346 183 945", "Tổ 2, ấp Thanh Tân, xã Thanh Lương, Thị Xã Bình Long, tỉnh Bình Phước"),
-        UserAddress(3, "Minh Chánh", "0869 532 615", "Số 608 Lô T, Đoàn Văn Bơ, Phường 9, Quận 4, TP. Hồ Chí Minh"),
-        UserAddress(4, "Triệu Vy", "0347 993 070", "Ấp Bình Thới, Xã An Thạnh, Huyện Mỏ Cày Nam, Bến Tre"),
-        UserAddress(5, "Bùi Phú Duy", "0563 795 999", "Ấp Đồng Tâm, xã Lộc Thịnh, Huyện Lộc Ninh, Bình Phước")
-    )
+    onAddressSelected: (UserAddress) -> Unit,
 
-    var selectedId by remember { mutableIntStateOf(1) } // Mặc định chọn địa chỉ đầu tiên
+) {
+    // 1. Sử dụng mutableStateListOf để quản lý danh sách có thể thay đổi (Xóa)
+    val addressList = remember {
+        mutableStateListOf(
+            UserAddress(1, "Hồ Công Danh", "0866 551 849", "81/1 Đường số 18D, Gò Xoài, Phường Bình Hưng Hòa A, Quận Bình Tân, TP. Hồ Chí Minh", true),
+            UserAddress(2, "Nguyễn Thị Thuỳ Trang", "0346 183 945", "Tổ 2, ấp Thanh Tân, xã Thanh Lương, Thị Xã Bình Long, tỉnh Bình Phước"),
+            UserAddress(3, "Minh Chánh", "0869 532 615", "Số 608 Lô T, Đoàn Văn Bơ, Phường 9, Quận 4, TP. Hồ Chí Minh"),
+            UserAddress(4, "Triệu Vy", "0347 993 070", "Ấp Bình Thới, Xã An Thạnh, Huyện Mỏ Cày Nam, Bến Tre"),
+            UserAddress(5, "Bùi Phú Duy", "0563 795 999", "Ấp Đồng Tâm, xã Lộc Thịnh, Huyện Lộc Ninh, Bình Phước")
+        )
+    }
+
+    var selectedId by remember { mutableIntStateOf(1) }
 
     Scaffold(
         topBar = {
@@ -54,7 +58,7 @@ fun AddressListScreen(
                 .background(Color(0xFFF5F5F5))
         ) {
             Text(
-                text = "Địa chỉ",
+                text = "Địa chỉ của tôi",
                 modifier = Modifier.padding(16.dp),
                 color = Color.Gray,
                 fontSize = 14.sp
@@ -65,13 +69,17 @@ fun AddressListScreen(
                     .fillMaxSize()
                     .background(Color.White)
             ) {
-                items(addressList) { address ->
+                items(addressList, key = { it.id }) { address ->
                     AddressItem(
                         address = address,
                         isSelected = address.id == selectedId,
                         onSelect = {
                             selectedId = address.id
-                            onAddressSelected(address) // Trả về địa chỉ đã chọn và quay lại
+                            onAddressSelected(address)
+                        },
+                        onDelete = {
+                            // Thực hiện xóa khỏi danh sách
+                            addressList.remove(address)
                         }
                     )
                     HorizontalDivider(color = Color(0xFFEEEEEE), thickness = 0.5.dp)
@@ -85,7 +93,9 @@ fun AddressListScreen(
 fun AddressItem(
     address: UserAddress,
     isSelected: Boolean,
-    onSelect: () -> Unit
+    onSelect: () -> Unit,
+    onDelete: () -> Unit,
+
 ) {
     Row(
         modifier = Modifier
@@ -145,12 +155,29 @@ fun AddressItem(
             }
         }
 
-        // Nút "Sửa" chỉ hiển thị cho giống mẫu nhưng không gán sự kiện click theo yêu cầu
-        Text(
-            text = "Sửa",
-            color = Color.Gray,
-            fontSize = 14.sp,
-            modifier = Modifier.padding(start = 8.dp)
-        )
+        // Cột chức năng: Sửa và Xóa
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                text = "Sửa",
+                color = Color(0xFFFF4D1C),
+                fontSize = 14.sp,
+                modifier = Modifier
+                    .clickable {  } // Xử lý sự kiện khi ấn vào chữ Sửa
+                    .padding(bottom = 8.dp)
+            )
+
+            // Nút Xóa địa chỉ
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DeleteOutline,
+                    contentDescription = "Delete",
+                    tint = Color.Gray,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
     }
 }
