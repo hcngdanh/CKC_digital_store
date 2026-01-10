@@ -32,13 +32,11 @@ fun ProductDetailScreen(
     onBuyNowClick: (ProductModel) -> Unit,
     onAddToCart: (ProductModel) -> Unit
 ) {
-    // --- 1. Khai báo State ---
     var product by remember { mutableStateOf<ProductModel?>(null) }
     var reviews by remember { mutableStateOf<List<Review>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
 
-    // --- 2. Gọi API lấy dữ liệu (Sử dụng LaunchedEffect) ---
     LaunchedEffect(productId) {
         try {
             isLoading = true
@@ -56,7 +54,6 @@ fun ProductDetailScreen(
 
     Scaffold(
         topBar = {
-            // --- 3. Thanh tiêu đề (TopAppBar) ---
             Column(modifier = Modifier.background(Color.Black).statusBarsPadding()) {
                 CenterAlignedTopAppBar(
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Black),
@@ -74,7 +71,6 @@ fun ProductDetailScreen(
                         )
                     },
                     actions = {
-                        // Badge hiển thị số lượng giỏ hàng
                         BadgedBox(badge = {
                             if (CartManager.badgeCartCount > 0) {
                                 Badge(containerColor = Color.Red) { Text(CartManager.badgeCartCount.toString()) }
@@ -89,7 +85,6 @@ fun ProductDetailScreen(
             }
         },
         bottomBar = {
-            // --- 4. Thanh hành động (Mua ngay / Thêm giỏ hàng) ---
             BottomActionBar(
                 product = product,
                 onBuyNowClick = onBuyNowClick,
@@ -97,7 +92,6 @@ fun ProductDetailScreen(
             )
         }
     ) { innerPadding ->
-        // --- 5. Nội dung chính ---
         if (isLoading) {
             Box(Modifier.fillMaxSize().padding(innerPadding), Alignment.Center) {
                 CircularProgressIndicator(color = Color.Black)
@@ -114,7 +108,6 @@ fun ProductDetailScreen(
                     .background(Color(0xFFF5F5F5))
                     .verticalScroll(rememberScrollState())
             ) {
-                // --- 6. Slideshow Ảnh sản phẩm ---
                 val images = remember(product) {
                     mutableListOf<String>().apply {
                         product?.ThumbnailURL?.let { add(it) }
@@ -132,7 +125,6 @@ fun ProductDetailScreen(
                             contentScale = ContentScale.Fit
                         )
                     }
-                    // Indicator (Dấu chấm chuyển trang)
                     Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp)) {
                         repeat(pagerState.pageCount) { i ->
                             val color = if (pagerState.currentPage == i) Color.DarkGray else Color.LightGray
@@ -141,7 +133,6 @@ fun ProductDetailScreen(
                     }
                 }
 
-                // --- 7. Thông tin cơ bản (Tên, Giá) ---
                 Column(Modifier.fillMaxWidth().background(Color.White).padding(16.dp)) {
                     Text(product!!.ProductName, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(8.dp))
@@ -157,7 +148,6 @@ fun ProductDetailScreen(
                     }
                 }
 
-                // --- 8. Thông số kỹ thuật (Dynamic dựa theo Category) ---
                 Spacer(Modifier.height(8.dp))
                 Column(Modifier.fillMaxWidth().background(Color.White).padding(16.dp)) {
                     Text("Thông số kỹ thuật", fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -177,7 +167,6 @@ fun ProductDetailScreen(
                     SpecRow("Bảo hành", product!!.WarrantyPeriod ?: "N/A")
                 }
 
-                // --- 9. Mô tả chi tiết ---
                 Spacer(Modifier.height(8.dp))
                 Column(Modifier.fillMaxWidth().background(Color.White).padding(16.dp)) {
                     Text("Mô tả sản phẩm", fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -188,7 +177,6 @@ fun ProductDetailScreen(
                     )
                 }
 
-                // --- 10. Phần Đánh giá (Reviews) ---
                 Spacer(Modifier.height(8.dp))
                 Column(Modifier.fillMaxWidth().background(Color.White).padding(16.dp)) {
                     Text("Đánh giá khách hàng", fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -203,7 +191,6 @@ fun ProductDetailScreen(
     }
 }
 
-// --- Component dòng thông số kỹ thuật ---
 @Composable
 fun SpecRow(label: String, value: String) {
     Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), Arrangement.SpaceBetween) {
@@ -212,7 +199,6 @@ fun SpecRow(label: String, value: String) {
     }
 }
 
-// --- Component thanh hành động dưới cùng ---
 @Composable
 fun BottomActionBar(product: ProductModel?, onBuyNowClick: (ProductModel) -> Unit, onAddToCart: () -> Unit) {
     Surface(shadowElevation = 8.dp, color = Color.White) {
@@ -235,7 +221,6 @@ fun BottomActionBar(product: ProductModel?, onBuyNowClick: (ProductModel) -> Uni
     }
 }
 
-// --- Component hiển thị một mục đánh giá ---
 @Composable
 fun ReviewItem(review: Review) {
     Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
