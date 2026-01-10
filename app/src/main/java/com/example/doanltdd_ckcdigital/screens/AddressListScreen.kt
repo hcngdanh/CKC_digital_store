@@ -25,7 +25,6 @@ fun AddressListScreen(
     onAddressSelected: (UserAddress) -> Unit,
 
 ) {
-    // 1. Sử dụng mutableStateListOf để quản lý danh sách có thể thay đổi (Xóa)
     val addressList = remember {
         mutableStateListOf(
             UserAddress(1, "Hồ Công Danh", "0866 551 849", "81/1 Đường số 18D, Gò Xoài, Phường Bình Hưng Hòa A, Quận Bình Tân, TP. Hồ Chí Minh", true),
