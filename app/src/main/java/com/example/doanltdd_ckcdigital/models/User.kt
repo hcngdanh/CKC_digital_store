@@ -21,6 +21,10 @@ data class RegisterRequest(
     val Phone: String,
     val Password: String
 )
+data class RegisterResponse(
+    val success: Boolean,
+    val message: String
+)
 data class AuthResponse(
     val success: Boolean,
     val message: String,
@@ -28,9 +32,16 @@ data class AuthResponse(
 )
 
 data class UserAddress(
-    val id: Int,
-    val name: String,
-    val phone: String,
-    val details: String,
-    val isDefault: Boolean = false
+    val AddressID: Int,    // Đảm bảo tên biến khớp chính xác từng chữ cái
+    val UserID: Int,
+    val ReceiverName: String,
+    val PhoneNumber: String,
+    val StreetAddress: String,
+    val City: String,
+    val IsDefault: Int
+)
+
+data class SimpleResponse(
+    val success: Boolean,
+    val message: String
 )

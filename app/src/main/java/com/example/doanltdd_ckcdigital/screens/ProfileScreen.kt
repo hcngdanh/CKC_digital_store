@@ -4,12 +4,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.automirrored.outlined.List
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Assignment
@@ -23,162 +28,205 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.doanltdd_ckcdigital.models.UserModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    user: UserModel?, // Nhận user từ AppNavGraph
+    user: UserModel?,
     onBackClick: () -> Unit,
     onLogoutClick: () -> Unit,
     onAddressManageClick: () -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
-            .statusBarsPadding()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.TopCenter)
-        ) {
-            // Header
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.Black)
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = "HỒ SƠ CÁ NHÂN",
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.Center)
+    Scaffold(
+        topBar = {
+            // Surface đen để StatusBar đồng nhất màu với TopBar
+            Surface(color = Color.Black) {
+                CenterAlignedTopAppBar(
+                    modifier = Modifier.statusBarsPadding(),
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = Color.Black
+                    ),
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = null,
+                                tint = Color.White
+                            )
+                        }
+                    },
+                    title = {
+                        AsyncImage(
+                            model = "https://res.cloudinary.com/dczhi464d/image/upload/v1767096256/shoplogo_new_fi45zg.png",
+                            contentDescription = "Logo",
+                            modifier = Modifier.height(30.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
                 )
             }
-
+        },
+        containerColor = Color(0xFF686868)
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+        ) {
+            // --- PHẦN 1: THÔNG TIN CÁ NHÂN (NỀN ĐEN) ---
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(vertical = 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Avatar
+                // Avatar tròn với viền mờ sang trọng
                 Box(
                     modifier = Modifier
-                        .size(80.dp)
+                        .size(100.dp)
                         .clip(CircleShape)
-                        .background(Color.LightGray),
+                        .background(Color(0xFFFFFFFF))
+                        .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = null,
-                        modifier = Modifier.size(50.dp),
-                        tint = Color.White
+                        modifier = Modifier.size(60.dp),
+                        tint = Color.Black
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Thông tin User
                 if (user != null) {
                     Text(
                         text = user.FullName,
-                        fontSize = 20.sp,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        color = Color.White
                     )
                     Text(
                         text = user.Email,
                         fontSize = 14.sp,
-                        color = Color.Gray
+                        color = Color.LightGray
                     )
-                } else {
-                    Text("Chưa đăng nhập", fontSize = 18.sp, color = Color.Red)
                 }
+            }
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Phần Đơn mua
-                OrderSection()
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Nút Quản lý địa chỉ
-                Row(
+            // --- PHẦN 2: CÁC PHÍM CHỨC NĂNG (NỀN TRẮNG SÁNG) ---
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = Color(0xFFF8F9FA), // Màu trắng sữa nhẹ giúp mắt dễ chịu
+                shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+            ) {
+                Column(
                     modifier = Modifier
+                        .padding(horizontal = 20.dp, vertical = 24.dp)
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White)
-                        .clickable { onAddressManageClick() } // Gọi hàm chuyển màn hình
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = null,
-                        tint = Color(0xFFFFA500),
-                        modifier = Modifier.size(24.dp)
+                    // Mục Chỉnh sửa
+                    ProfileMenuItem(
+                        icon = Icons.Default.Edit,
+                        title = "Chỉnh sửa thông tin cá nhân",
+                        iconColor = Color.Black,
+                        onClick = { /* Handle edit profile */ }
                     )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text(
-                        text = "Quản lý địa chỉ",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color.Black,
-                        modifier = Modifier.weight(1f)
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Card Đơn mua
+                    OrderSection()
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Mục Địa chỉ
+                    ProfileMenuItem(
+                        icon = Icons.Default.LocationOn,
+                        title = "Quản lý địa chỉ",
+                        iconColor = Color(0xFFF44336),
+                        onClick = onAddressManageClick
                     )
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Outlined.ArrowForwardIos,
-                        contentDescription = null,
-                        tint = Color.Gray,
-                        modifier = Modifier.size(16.dp)
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Mục Yêu thích
+                    ProfileMenuItem(
+                        icon = Icons.Default.Favorite,
+                        title = "Danh sách yêu thích",
+                        iconColor = Color(0xFFE91E63),
+                        onClick = { /* Handle favorite */ }
                     )
+
+                    Spacer(modifier = Modifier.height(40.dp))
+
+                    // Nút Đăng xuất nổi bật trên nền trắng
+                    Button(
+                        onClick = onLogoutClick,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+                    ) {
+                        Icon(Icons.AutoMirrored.Outlined.ExitToApp, contentDescription = null)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("ĐĂNG XUẤT", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    Spacer(modifier = Modifier.height(40.dp))
                 }
             }
         }
+    }
+}
 
-        // Các nút bấm dưới đáy
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(16.dp)
-        ) {
-            Button(
-                onClick = onLogoutClick,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.ExitToApp,
-                    contentDescription = null,
-                    tint = Color.White
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("ĐĂNG XUẤT", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedButton(
-                onClick = onBackClick,
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text("QUAY LẠI", color = Color.Black)
-            }
-        }
+@Composable
+fun ProfileMenuItem(
+    icon: ImageVector,
+    title: String,
+    iconColor: Color,
+    onClick: () -> Unit
+) {
+    // Row sử dụng màu trắng tinh khiết để nổi bật trên nền trắng sữa của Surface
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White)
+            .clickable { onClick() }
+            .padding(18.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = iconColor,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = title,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF333333),
+            modifier = Modifier.weight(1f)
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Outlined.ArrowForwardIos,
+            contentDescription = null,
+            tint = Color.LightGray,
+            modifier = Modifier.size(14.dp)
+        )
     }
 }
 
@@ -187,9 +235,9 @@ fun OrderSection() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(Color.White)
-            .padding(12.dp)
+            .padding(16.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -203,11 +251,7 @@ fun OrderSection() {
                 color = Color.Black
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "Xem lịch sử mua hàng",
-                    fontSize = 13.sp,
-                    color = Color.Gray
-                )
+                Text(text = "Lịch sử mua hàng", fontSize = 12.sp, color = Color.Gray)
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.List,
                     contentDescription = null,
@@ -216,9 +260,7 @@ fun OrderSection() {
                 )
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray)
-        Spacer(modifier = Modifier.height(16.dp))
+        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp, color = Color(0xFFF0F0F0))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -235,20 +277,25 @@ fun OrderSection() {
 fun OrderStatusItem(icon: ImageVector, label: String, badgeCount: Int = 0) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(80.dp).clickable { }
+        modifier = Modifier.width(75.dp)
     ) {
         Box(contentAlignment = Alignment.TopEnd) {
-            Icon(imageVector = icon, contentDescription = label, modifier = Modifier.size(32.dp), tint = Color(0xFF555555))
+            Icon(icon, null, modifier = Modifier.size(28.dp), tint = Color(0xFF555555))
             if (badgeCount > 0) {
                 Box(
-                    modifier = Modifier.offset(x = 6.dp, y = (-6).dp).size(18.dp).clip(CircleShape).background(Color.Red).border(1.dp, Color.White, CircleShape),
+                    modifier = Modifier
+                        .offset(x = 6.dp, y = (-6).dp)
+                        .size(18.dp)
+                        .clip(CircleShape)
+                        .background(Color.Red)
+                        .border(1.dp, Color.White, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = badgeCount.toString(), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(badgeCount.toString(), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Text(text = label, fontSize = 12.sp, color = Color.Black, textAlign = TextAlign.Center, lineHeight = 14.sp)
+        Text(label, fontSize = 11.sp, textAlign = TextAlign.Center, lineHeight = 13.sp)
     }
 }
