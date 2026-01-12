@@ -19,7 +19,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// Màu cam đặc trưng của Shopee (hoặc màu đỏ trong ảnh của bạn)
 val ShopeeRed = Color(0xFFEE4D2D)
 val BackgroundGray = Color(0xFFF5F5F5)
 val TextGray = Color(0xFF888888)
@@ -49,12 +48,10 @@ fun EditProfileScreen(onBackClick: () -> Unit) {
                 .verticalScroll(rememberScrollState())
                 .background(BackgroundGray)
         ) {
-            // --- PHẦN: TÀI KHOẢN ---
             SectionHeader(text = "Tài Khoản")
 
             SettingsItem(title = "Hồ sơ của tôi")
 
-            // Item không có mũi tên, chỉ hiện tên
             SettingsItem(title = "Tên người dùng", valueText = "trantuancuongdev", showArrow = false)
 
             SettingsItem(title = "Điện thoại", valueText = "*****56")
@@ -62,14 +59,12 @@ fun EditProfileScreen(onBackClick: () -> Unit) {
             SettingsItem(title = "Tài khoản mạng xã hội")
             SettingsItem(title = "Đổi mật khẩu")
 
-            // Item đặc biệt: Có dòng chữ đỏ "Thiết lập ngay..."
             SettingsItem(
                 title = "Passkey",
                 valueText = "Thiết lập ngay bây giờ",
                 valueColor = ShopeeRed
             )
 
-            // Item dạng Switch: Vân tay
             var fingerprintEnabled by remember { mutableStateOf(true) }
             SettingsSwitchItem(
                 title = "Xác Thực Bằng Vân Tay",
@@ -78,7 +73,6 @@ fun EditProfileScreen(onBackClick: () -> Unit) {
                 onCheckedChange = { fingerprintEnabled = it }
             )
 
-            // Item dạng Switch: Đăng nhập nhanh
             var quickLoginEnabled by remember { mutableStateOf(false) }
             SettingsSwitchItem(
                 title = "Đăng nhập nhanh",
@@ -87,7 +81,6 @@ fun EditProfileScreen(onBackClick: () -> Unit) {
                 onCheckedChange = { quickLoginEnabled = it }
             )
 
-            // --- PHẦN: BẢO MẬT ---
             SectionHeader(text = "Bảo Mật")
 
             SettingsItem(
@@ -95,7 +88,6 @@ fun EditProfileScreen(onBackClick: () -> Unit) {
                 subtitle = "Kiểm tra những lần đăng nhập và thay đổi tài khoản trong 30 ngày gần nhất"
             )
 
-            // Item có chấm đỏ thông báo
             SettingsItem(
                 title = "Quản lý thiết bị đăng nhập",
                 subtitle = "Quản lý các thiết bị đã đăng nhập vào tài khoản Shopee",
@@ -107,7 +99,6 @@ fun EditProfileScreen(onBackClick: () -> Unit) {
     }
 }
 
-// --- CÁC COMPONENT CON (REUSABLE) ---
 
 @Composable
 fun SectionHeader(text: String) {
@@ -131,19 +122,17 @@ fun SettingsItem(
     Column(modifier = Modifier
         .fillMaxWidth()
         .background(Color.White)
-        .clickable { /* Handle click */ }
+        .clickable {  }
         .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Cột bên trái: Title
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = title, fontSize = 16.sp, color = Color.Black)
             }
 
-            // Cột bên phải: Value Text + Red Dot + Arrow
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (valueText != null) {
                     Text(
@@ -173,7 +162,6 @@ fun SettingsItem(
             }
         }
 
-        // Subtitle nằm dưới (nếu có)
         if (subtitle != null) {
             Text(
                 text = subtitle,
@@ -184,7 +172,6 @@ fun SettingsItem(
             )
         }
     }
-    // Đường kẻ mờ phân cách
     HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.5f))
 }
 
@@ -212,7 +199,7 @@ fun SettingsSwitchItem(
                 onCheckedChange = onCheckedChange,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = Color.White,
-                    checkedTrackColor = Color(0xFF26A69A), // Màu xanh Shopee/Teal
+                    checkedTrackColor = Color(0xFF26A69A),
                     uncheckedThumbColor = Color.White,
                     uncheckedTrackColor = Color.LightGray
                 )
