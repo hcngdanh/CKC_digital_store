@@ -53,6 +53,7 @@ data class OrderHistoryItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderHistoryScreen(
+    userId: Int,
     onBackClick: () -> Unit = {}
 ) {
     val sampleOrders = remember {
@@ -303,5 +304,5 @@ fun formatCurrencyHistory(amount: Long): String {
 @Preview
 @Composable
 fun PreviewOrderHistory() {
-    OrderHistoryScreen()
+    OrderHistoryScreen(userId = 1)
 }

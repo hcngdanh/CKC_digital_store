@@ -19,7 +19,6 @@ class SessionManager private constructor(context: Context) {
     fun saveUserSession(user: UserModel) {
         currentUser = user
 
-        // Lưu xuống bộ nhớ máy
         val userJson = gson.toJson(user)
         prefs.edit().apply {
             putString("user_data", userJson)
@@ -39,8 +38,16 @@ class SessionManager private constructor(context: Context) {
         } else null
     }
 
+    fun getUser(): UserModel? {
+        return currentUser
+    }
+
     fun isLoggedIn(): Boolean {
         return prefs.getBoolean("is_logged_in", false) && currentUser != null
+    }
+
+    fun isAdmin(): Boolean {
+        return isLoggedIn() && currentUser?.RoleID == 1
     }
 
     fun clearSession() {

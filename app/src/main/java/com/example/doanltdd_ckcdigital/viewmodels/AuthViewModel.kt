@@ -9,7 +9,6 @@ import com.example.doanltdd_ckcdigital.models.LoginRequest
 import com.example.doanltdd_ckcdigital.models.RegisterRequest
 import com.example.doanltdd_ckcdigital.models.UserModel
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
-import com.example.doanltdd_ckcdigital.utils.CartManager
 import com.example.doanltdd_ckcdigital.utils.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,20 +30,24 @@ class AuthViewModel(private val sessionManager: SessionManager) : ViewModel() {
     var isLoading by mutableStateOf(false)
     var registerError by mutableStateOf("")
 
-    fun login(email: String, pass: String, onLoginSuccess: () -> Unit) {
+    fun login(email: String, pass: String, onLoginSuccess: (Int) -> Unit) {
         viewModelScope.launch {
             _loginState.value = LoginState.Loading
             try {
                 val response = RetrofitClient.apiService.login(LoginRequest(email, pass))
+
                 if (response.success && response.data != null) {
-                    sessionManager.saveUserSession(response.data)
-                    _loginState.value = LoginState.Success(response.data)
-                    onLoginSuccess()
+                    val user = response.data
+                    sessionManager.saveUserSession(user)
+                    _loginState.value = LoginState.Success(user)
+                    onLoginSuccess(user.RoleID)
                 } else {
                     _loginState.value = LoginState.Error(response.message)
+                    loginError = response.message
                 }
             } catch (e: Exception) {
                 _loginState.value = LoginState.Error("Không thể kết nối server: ${e.message}")
+                loginError = "Lỗi kết nối: ${e.message}"
             }
         }
     }

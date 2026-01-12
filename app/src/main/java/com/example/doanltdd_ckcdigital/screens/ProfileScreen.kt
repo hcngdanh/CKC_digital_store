@@ -42,7 +42,8 @@ fun ProfileScreen(
     user: UserModel?,
     onBackClick: () -> Unit,
     onLogoutClick: () -> Unit,
-    onAddressManageClick: () -> Unit
+    onAddressManageClick: () -> Unit,
+    onOrderHistoryClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -80,7 +81,6 @@ fun ProfileScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            // --- PHẦN 1: THÔNG TIN CÁ NHÂN (NỀN ĐEN) ---
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -122,7 +122,7 @@ fun ProfileScreen(
 
             Surface(
                 modifier = Modifier.fillMaxSize(),
-                color = Color(0xFFF8F9FA), // Màu trắng sữa nhẹ giúp mắt dễ chịu
+                color = Color(0xFFF8F9FA),
                 shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
             ) {
                 Column(
@@ -134,12 +134,12 @@ fun ProfileScreen(
                         icon = Icons.Default.Edit,
                         title = "Chỉnh sửa thông tin cá nhân",
                         iconColor = Color.Black,
-                        onClick = { /* Handle edit profile */ }
+                        onClick = {  }
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    OrderSection()
+                    OrderSection(onHistoryClick = onOrderHistoryClick)
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -156,7 +156,7 @@ fun ProfileScreen(
                         icon = Icons.Default.Favorite,
                         title = "Danh sách yêu thích",
                         iconColor = Color(0xFFE91E63),
-                        onClick = { /* Handle favorite */ }
+                        onClick = {  }
                     )
 
                     Spacer(modifier = Modifier.height(40.dp))
@@ -222,7 +222,7 @@ fun ProfileMenuItem(
 }
 
 @Composable
-fun OrderSection() {
+fun OrderSection(onHistoryClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -231,7 +231,10 @@ fun OrderSection() {
             .padding(16.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onHistoryClick() }
+                .padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -256,19 +259,26 @@ fun OrderSection() {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            OrderStatusItem(Icons.Outlined.Assignment, "Chờ xác nhận")
-            OrderStatusItem(Icons.Outlined.Inventory2, "Chờ lấy hàng")
-            OrderStatusItem(Icons.Outlined.LocalShipping, "Chờ giao hàng", 1)
-            OrderStatusItem(Icons.Outlined.StarRate, "Đánh giá", 1)
+            OrderStatusItem(Icons.Outlined.Assignment, "Chờ xác nhận") { onHistoryClick() }
+            OrderStatusItem(Icons.Outlined.Inventory2, "Chờ lấy hàng") { onHistoryClick() }
+            OrderStatusItem(Icons.Outlined.LocalShipping, "Chờ giao hàng", 1) { onHistoryClick() }
+            OrderStatusItem(Icons.Outlined.StarRate, "Đánh giá", 1) { onHistoryClick() }
         }
     }
 }
 
 @Composable
-fun OrderStatusItem(icon: ImageVector, label: String, badgeCount: Int = 0) {
+fun OrderStatusItem(
+    icon: ImageVector,
+    label: String,
+    badgeCount: Int = 0,
+    onClick: () -> Unit = {}
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(75.dp)
+        modifier = Modifier
+            .width(75.dp)
+            .clickable { onClick() }
     ) {
         Box(contentAlignment = Alignment.TopEnd) {
             Icon(icon, null, modifier = Modifier.size(28.dp), tint = Color(0xFF555555))

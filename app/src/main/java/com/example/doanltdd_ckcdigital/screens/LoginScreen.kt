@@ -33,6 +33,7 @@ import com.example.doanltdd_ckcdigital.viewmodels.LoginState
 fun LoginScreen(
     viewModel: AuthViewModel,
     onNavigateToHome: () -> Unit,
+    onNavigateToAdmin: () -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
     onBack: () -> Unit
@@ -44,23 +45,17 @@ fun LoginScreen(
     val loginState by viewModel.loginState.collectAsState()
     val context = LocalContext.current
 
-    LaunchedEffect(loginState) {
-        when (loginState) {
-            is LoginState.Success -> {
-                Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
-                onNavigateToHome()
-                viewModel.resetState()
-            }
-            is LoginState.Error -> {
-                val errorMsg = (loginState as LoginState.Error).message
-                Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
-                viewModel.resetState()
-            }
-            else -> {}
-        }
+    LaunchedEffect(Unit) {
+        viewModel.resetState()
     }
 
-
+    LaunchedEffect(loginState) {
+        if (loginState is LoginState.Error) {
+            val errorMsg = (loginState as LoginState.Error).message
+            Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+            viewModel.resetState()
+        }
+    }
 
     Scaffold(
         containerColor = Color.Black,
@@ -175,7 +170,17 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = { viewModel.login(email, password, onLoginSuccess = onNavigateToHome) },
+                onClick = {
+                    viewModel.login(email, password) { roleId ->
+                        if (roleId == 1) { // 1 là Admin
+                            Toast.makeText(context, "Xin chào Admin!", Toast.LENGTH_SHORT).show()
+                            onNavigateToAdmin()
+                        } else {
+                            Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
+                            onNavigateToHome()
+                        }
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
