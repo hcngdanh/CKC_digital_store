@@ -53,7 +53,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
             modifier = Modifier.offset { IntOffset(0, offsetY.value.toInt()) }
         ) {
             AsyncImage(
-                model = "https://res.cloudinary.com/dczhi464d/image/upload/v1767096256/shoplogo_new_fi45zg.png", // Thay bằng URL thật của bạn
+                model = "https://res.cloudinary.com/dczhi464d/image/upload/v1767096256/shoplogo_new_fi45zg.png",
                 contentDescription = "Logo CKC",
                 modifier = Modifier.width(130.dp)
             )
