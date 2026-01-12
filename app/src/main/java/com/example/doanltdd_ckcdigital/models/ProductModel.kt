@@ -36,3 +36,8 @@ data class CategoryModel(
     val ParentID: Int?
 )
 
+data class ProductAddToCart(
+    val userId:Int,
+    val productID: Int,
+    val quantity: Int
+)
