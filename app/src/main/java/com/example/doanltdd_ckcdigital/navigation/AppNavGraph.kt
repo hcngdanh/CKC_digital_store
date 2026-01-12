@@ -36,19 +36,22 @@ fun AppNavGraph() {
     NavHost(navController = navController, startDestination = "splash") {
 
         composable("splash") {
-            SplashScreen(onTimeout = {
-                val savedUser = sessionManager.currentUser
+            SplashScreen(
+                isLoading = false,
+                onDataReady = {
+                    val savedUser = sessionManager.currentUser
 
-                if (savedUser != null && savedUser.RoleID == 1) {
-                    navController.navigate("admin_dashboard") {
-                        popUpTo("splash") { inclusive = true }
-                    }
-                } else {
-                    navController.navigate("product_list") {
-                        popUpTo("splash") { inclusive = true }
+                    if (savedUser != null && savedUser.RoleID == 1) {
+                        navController.navigate("admin_dashboard") {
+                            popUpTo("splash") { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate("product_list") {
+                            popUpTo("splash") { inclusive = true }
+                        }
                     }
                 }
-            })
+            )
         }
 
         composable("product_list") {
@@ -117,6 +120,7 @@ fun AppNavGraph() {
             if (user != null) {
                 CheckoutScreen(
                     user = user,
+                    selectedAddress = null,
                     onBackClick = { navController.popBackStack() },
                     onAddressClick = { navController.navigate("address_list") },
                     buyNowProductId = buyNowId,
@@ -147,7 +151,13 @@ fun AppNavGraph() {
                         }
                     },
                     onAddressManageClick = { navController.navigate("address_list") },
-                    onOrderHistoryClick = { navController.navigate("order_history") }
+                    onOrderHistoryClick = { navController.navigate("order_history") },
+                    onEditProfileClick = {
+                        Toast.makeText(context, "Chức năng đang phát triển", Toast.LENGTH_SHORT).show()
+                    },
+                    onPasswordChangeClick = {
+                        Toast.makeText(context, "Chức năng đang phát triển", Toast.LENGTH_SHORT).show()
+                    }
                 )
             } else {
                 navController.navigate("login")
@@ -159,6 +169,7 @@ fun AppNavGraph() {
             if (user != null) {
                 AddressListScreen(
                     userId = user.UserID,
+                    currentSelectedId = -1,
                     onBackClick = { navController.popBackStack() },
                     onAddressSelected = {
                         navController.popBackStack()
