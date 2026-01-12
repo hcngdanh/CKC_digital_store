@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.ConfirmationNumber
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.doanltdd_ckcdigital.models.ProductModel
+import com.example.doanltdd_ckcdigital.models.UserAddress
 import com.example.doanltdd_ckcdigital.models.UserModel
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
 import com.example.doanltdd_ckcdigital.utils.CartItem
@@ -35,6 +37,7 @@ import java.util.Locale
 fun CheckoutScreen(
     user: UserModel?,
     onBackClick: () -> Unit,
+    selectedAddress: UserAddress?,
     onAddressClick: () -> Unit,
     buyNowProductId: Int,
     onOrderSuccess: () -> Unit
@@ -42,6 +45,8 @@ fun CheckoutScreen(
     var buyNowProduct by remember { mutableStateOf<ProductModel?>(null) }
     var selectedPaymentMethod by remember { mutableStateOf("COD") }
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
+    var selectedVoucher by remember { mutableStateOf<String?>(null) }
+    var discountAmount by remember { mutableDoubleStateOf(0.0) }
 
     LaunchedEffect(buyNowProductId) {
         if (buyNowProductId != -1) {
@@ -65,6 +70,7 @@ fun CheckoutScreen(
     }
 
     val totalPrice = displayItems.sumOf { it.Price * it.quantity }
+    val finalPrice = totalPrice - discountAmount
 
     Scaffold(
         topBar = {
@@ -108,24 +114,35 @@ fun CheckoutScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
+                        val displayName =
+                            selectedAddress?.ReceiverName ?: user?.FullName ?: "Chọn địa chỉ"
+                        val displayPhone = selectedAddress?.PhoneNumber ?: user?.Phone ?: ""
+                        val displayAddressText = if (selectedAddress != null) {
+                            "${selectedAddress.StreetAddress}, ${selectedAddress.City}"
+                        } else {
+                            "Vui lòng chọn địa chỉ nhận hàng"
+                        }
+
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = user?.FullName ?: "Người dùng",
+                                text = displayName,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "(+84) ${user?.Phone?.removePrefix("0") ?: ""}",
-                                fontSize = 14.sp,
-                                color = Color.Gray
-                            )
+                            if (displayPhone.isNotEmpty()) {
+                                Text(
+                                    text = "(+84) ${displayPhone.removePrefix("0")}",
+                                    fontSize = 14.sp,
+                                    color = Color.Gray
+                                )
+                            }
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "81/1 Đường số 18D, Gò Xoài, Phường Bình Hưng Hòa A, Quận Bình Tân, TP. Hồ Chí Minh",
+                            text = displayAddressText,
                             fontSize = 14.sp,
-                            color = Color.DarkGray,
+                            color = if (selectedAddress != null) Color.DarkGray else ShopeeRed,
                             lineHeight = 20.sp
                         )
                     }
@@ -143,7 +160,12 @@ fun CheckoutScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.ShoppingCart, null, tint = Color.Gray, modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.Default.ShoppingCart,
+                            null,
+                            tint = Color.Gray,
+                            modifier = Modifier.size(20.dp)
+                        )
                         Spacer(Modifier.width(8.dp))
                         Text("Sản phẩm đã chọn", fontWeight = FontWeight.Bold)
                     }
@@ -155,11 +177,17 @@ fun CheckoutScreen(
                             AsyncImage(
                                 model = item.ThumbnailURL,
                                 contentDescription = null,
-                                modifier = Modifier.size(60.dp).background(Color(0xFFF5F5F5), RoundedCornerShape(4.dp)),
+                                modifier = Modifier.size(60.dp)
+                                    .background(Color(0xFFF5F5F5), RoundedCornerShape(4.dp)),
                                 contentScale = ContentScale.Fit
                             )
                             Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                                Text(item.ProductName, fontSize = 14.sp, maxLines = 1, fontWeight = FontWeight.Medium)
+                                Text(
+                                    item.ProductName,
+                                    fontSize = 14.sp,
+                                    maxLines = 1,
+                                    fontWeight = FontWeight.Medium
+                                )
                                 Text(
                                     text = "${formatter.format(item.Price)} x ${item.quantity}",
                                     color = Color.Gray, fontSize = 13.sp
@@ -170,6 +198,61 @@ fun CheckoutScreen(
                     }
                 }
             }
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(2.dp),
+                modifier = Modifier.clickable {
+                    if (selectedVoucher == null) {
+                        selectedVoucher = "GIAM50K"
+                        discountAmount = 50000.0
+                    } else {
+                        selectedVoucher = null
+                        discountAmount = 0.0
+                    }
+                }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.ConfirmationNumber,
+                            contentDescription = null,
+                            tint = Color(0xFFFF4D1C),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Shopee Voucher", fontWeight = FontWeight.Bold)
+                    }
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (selectedVoucher != null) {
+                            Text(
+                                text = "- ${formatter.format(discountAmount)}",
+                                color = Color(0xFFFF4D1C),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        } else {
+                            Text(
+                                text = "Chọn hoặc nhập mã",
+                                color = Color.Gray,
+                                fontSize = 14.sp
+                            )
+                        }
+
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = Color.LightGray
+                        )
+                    }
+                }
+            }
 
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -177,7 +260,12 @@ fun CheckoutScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Payment, null, tint = Color.Gray, modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.Default.Payment,
+                            null,
+                            tint = Color.Gray,
+                            modifier = Modifier.size(20.dp)
+                        )
                         Spacer(Modifier.width(8.dp))
                         Text("Phương thức thanh toán", fontWeight = FontWeight.Bold)
                     }
@@ -214,19 +302,33 @@ fun CheckoutScreen(
                 Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
                     Text("Tóm tắt đơn hàng", fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(12.dp))
+
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Tạm tính", color = Color.Gray, fontSize = 14.sp)
                         Text(formatter.format(totalPrice))
                     }
+
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Phí vận chuyển", color = Color.Gray, fontSize = 14.sp)
                         Text("Miễn phí", color = Color(0xFF4CAF50))
                     }
+
+                    if (discountAmount > 0) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Voucher giảm giá", color = Color.Gray, fontSize = 14.sp)
+                            Text("-${formatter.format(discountAmount)}", color = Color(0xFFFF4D1C))
+                        }
+                    }
+
                     HorizontalDivider(Modifier.padding(vertical = 12.dp))
+
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Tổng cộng", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         Text(
-                            text = formatter.format(totalPrice),
+                            text = formatter.format(finalPrice),
                             color = Color(0xFFFF4D1C),
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp

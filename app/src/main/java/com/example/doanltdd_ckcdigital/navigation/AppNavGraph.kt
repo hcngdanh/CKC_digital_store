@@ -2,7 +2,10 @@ package com.example.doanltdd_ckcdigital.navigation
 
 import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -13,16 +16,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.doanltdd_ckcdigital.admin.AdminDashboardScreen
+import com.example.doanltdd_ckcdigital.models.UserAddress
 import com.example.doanltdd_ckcdigital.screens.*
 import com.example.doanltdd_ckcdigital.utils.CartManager
 import com.example.doanltdd_ckcdigital.utils.SessionManager
 import com.example.doanltdd_ckcdigital.viewmodels.AuthViewModel
+import androidx.compose.runtime.*
 
 @Composable
 fun AppNavGraph() {
     val navController = rememberNavController()
     val context = LocalContext.current
-
+    var selectedAddress by remember { mutableStateOf<UserAddress?>(null) }
     val sessionManager = remember { SessionManager.getInstance(context) }
 
     val authViewModel: AuthViewModel = viewModel(
@@ -117,6 +122,7 @@ fun AppNavGraph() {
             if (user != null) {
                 CheckoutScreen(
                     user = user,
+                    selectedAddress = selectedAddress,
                     onBackClick = { navController.popBackStack() },
                     onAddressClick = { navController.navigate("address_list") },
                     buyNowProductId = buyNowId,
@@ -159,8 +165,10 @@ fun AppNavGraph() {
             if (user != null) {
                 AddressListScreen(
                     userId = user.UserID,
+                    currentSelectedId = selectedAddress?.AddressID,
                     onBackClick = { navController.popBackStack() },
-                    onAddressSelected = {
+                    onAddressSelected = { address ->
+                        selectedAddress = address
                         navController.popBackStack()
                     },
                     onEditClick = { addressId ->
