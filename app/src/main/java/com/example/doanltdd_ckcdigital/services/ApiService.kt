@@ -66,7 +66,7 @@ interface ApiService {
     @POST("api/cart/add")
     suspend fun addToCart(@Body request: ProductAddToCart): SimpleResponse
 
-    @GET("api/cart")
+    @GET("api/cart/{userId}")
     suspend fun getCartItems(): ApiResponse<List<ProductModel>>
 
 
