@@ -4,6 +4,7 @@ import com.example.doanltdd_ckcdigital.models.ApiResponse
 import com.example.doanltdd_ckcdigital.models.AuthResponse
 import com.example.doanltdd_ckcdigital.models.CategoryModel
 import com.example.doanltdd_ckcdigital.models.LoginRequest
+import com.example.doanltdd_ckcdigital.models.ProductAddToCart
 import com.example.doanltdd_ckcdigital.models.ProductModel
 import com.example.doanltdd_ckcdigital.models.RegisterRequest
 import com.example.doanltdd_ckcdigital.models.Review
@@ -61,6 +62,14 @@ interface ApiService {
 
     @POST("api/auth/logout")
     suspend fun logout(): ApiResponse<Unit>
+
+    @POST("api/cart/add")
+    suspend fun addToCart(@Body request: ProductAddToCart): SimpleResponse
+
+    @GET("api/cart/{userId}")
+    suspend fun getCartItems(): ApiResponse<List<ProductModel>>
+
+
 }
 
 object RetrofitClient {
