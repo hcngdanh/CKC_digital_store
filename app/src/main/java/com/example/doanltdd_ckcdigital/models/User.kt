@@ -1,5 +1,6 @@
 package com.example.doanltdd_ckcdigital.models
 
+
 data class UserModel(
     val UserID: Int,
     val FullName: String,
