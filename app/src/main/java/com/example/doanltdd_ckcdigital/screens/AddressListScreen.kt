@@ -57,19 +57,19 @@ fun AddressListScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Địa chỉ của tôi", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
+                title = { Text("Địa chỉ của tôi", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
             )
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onAddNewAddressClick,
-                containerColor = Color(0xFFFF4D1C),
+                containerColor = Color(0xFF000000),
                 contentColor = Color.White,
                 shape = RoundedCornerShape(30.dp),
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
@@ -153,7 +153,7 @@ fun AddressItem(
         RadioButton(
             selected = isSelected,
             onClick = onSelect,
-            colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFFF4D1C))
+            colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF000000))
         )
 
         Spacer(modifier = Modifier.width(8.dp))

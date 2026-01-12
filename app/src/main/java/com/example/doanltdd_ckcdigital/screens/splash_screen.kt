@@ -18,10 +18,15 @@ import kotlinx.coroutines.launch
 import coil.compose.AsyncImage
 
 @Composable
-fun SplashScreen(onTimeout: () -> Unit) {
+fun SplashScreen(
+    isLoading: Boolean,
+    onDataReady: () -> Unit
+) {
     val alpha = remember { Animatable(0f) }
     val offsetY = remember { Animatable(100f) }
     var showLoading by remember { mutableStateOf(false) }
+
+    var isTimeOutFinished by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         launch {
@@ -30,12 +35,17 @@ fun SplashScreen(onTimeout: () -> Unit) {
         launch {
             offsetY.animateTo(0f, animationSpec = tween(1000))
         }
-
-        delay(800)
+        delay(1500)
         showLoading = true
+        delay(500)
+        isTimeOutFinished = true
+    }
 
-        delay(1200)
-        onTimeout()
+
+    LaunchedEffect(isLoading, isTimeOutFinished) {
+        if (!isLoading && isTimeOutFinished) {
+            onDataReady()
+        }
     }
 
     Box(
