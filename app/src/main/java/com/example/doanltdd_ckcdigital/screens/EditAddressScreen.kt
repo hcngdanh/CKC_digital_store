@@ -25,6 +25,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.doanltdd_ckcdigital.models.UserAddress
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
 import kotlinx.coroutines.launch
@@ -79,12 +81,13 @@ fun EditAddressScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Sửa địa chỉ", fontWeight = FontWeight.Bold) },
+                title = { Text("Sửa địa chỉ", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
             )
         }
     ) { padding ->
@@ -148,7 +151,7 @@ fun EditAddressScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(54.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D1C)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000000)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text("LƯU THAY ĐỔI", fontWeight = FontWeight.Bold, color = Color.White)

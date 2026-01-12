@@ -68,11 +68,23 @@ interface ApiService {
     @GET("api/cart/{userId}")
     suspend fun getCartItems(): ApiResponse<List<ProductModel>>
 
+    @PUT("api/auth/update-profile/{userId}")
+    suspend fun updateProfile(
+        @Path("userId") userId: Int,
+        @Body request: Map<String, String>
+    ): ApiResponse<UserModel>
+
+    @PUT("api/auth/change-password/{userId}")
+    suspend fun changePassword(
+        @Path("userId") userId: Int,
+        @Body request: Map<String, String>
+    ): SimpleResponse
+
 
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "https://server-api-doan.onrender.com/"
+    private const val BASE_URL = "http://10.0.2.2:3000/"
 
     val apiService: ApiService by lazy {
         Retrofit.Builder()

@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.doanltdd_ckcdigital.models.UserAddress
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
 import kotlinx.coroutines.launch
@@ -110,7 +109,7 @@ fun AddAddressScreen(
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(54.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D1C)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000000)),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text("HOÀN TẤT", fontWeight = FontWeight.Bold, color = Color.White)

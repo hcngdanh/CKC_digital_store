@@ -3,6 +3,8 @@ package com.example.doanltdd_ckcdigital.utils
 import android.content.Context
 import com.example.doanltdd_ckcdigital.models.UserModel
 import com.google.gson.Gson
+import androidx.core.content.edit
+
 
 class SessionManager private constructor(context: Context) {
 
@@ -51,8 +53,11 @@ class SessionManager private constructor(context: Context) {
     }
 
     fun clearSession() {
+        prefs.edit(commit = true) {
+            clear()
+        }
+
         currentUser = null
-        prefs.edit().clear().apply()
     }
 
     companion object {

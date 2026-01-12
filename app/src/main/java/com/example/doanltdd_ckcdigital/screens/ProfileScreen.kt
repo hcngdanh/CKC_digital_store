@@ -16,6 +16,7 @@ import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Assignment
 import androidx.compose.material.icons.outlined.Inventory2
@@ -43,7 +44,9 @@ fun ProfileScreen(
     onBackClick: () -> Unit,
     onLogoutClick: () -> Unit,
     onAddressManageClick: () -> Unit,
-    onOrderHistoryClick: () -> Unit
+    onOrderHistoryClick: () -> Unit,
+    onEditProfileClick: () -> Unit,
+    onPasswordChangeClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -91,16 +94,27 @@ fun ProfileScreen(
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFFFFFFF))
+                        .background(Color.White)
                         .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = null,
-                        modifier = Modifier.size(60.dp),
-                        tint = Color.Black
-                    )
+                    if (!user?.AvatarURL.isNullOrEmpty()) {
+                        // Hiển thị ảnh từ Database
+                        AsyncImage(
+                            model = user.AvatarURL,
+                            contentDescription = "User Avatar",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop // Cắt ảnh cho vừa vòng tròn
+                        )
+                    } else {
+                        // Hiển thị Icon mặc định nếu không có ảnh
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.size(60.dp),
+                            tint = Color.Black
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -134,7 +148,16 @@ fun ProfileScreen(
                         icon = Icons.Default.Edit,
                         title = "Chỉnh sửa thông tin cá nhân",
                         iconColor = Color.Black,
-                        onClick = {  }
+                        onClick = { onEditProfileClick() }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    ProfileMenuItem(
+                        icon = Icons.Default.Lock,
+                        title = "Thay đổi mật khẩu",
+                        iconColor = Color.Black,
+                        onClick = { onPasswordChangeClick() }
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -163,7 +186,7 @@ fun ProfileScreen(
 
                     Button(
                         onClick = onLogoutClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000000)),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
