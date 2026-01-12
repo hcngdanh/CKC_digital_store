@@ -204,7 +204,9 @@ fun BottomActionBar(product: ProductModel?, onBuyNowClick: (ProductModel) -> Uni
     Surface(shadowElevation = 8.dp, color = Color.White) {
         Row(Modifier.fillMaxWidth().padding(12.dp).navigationBarsPadding(), Arrangement.spacedBy(12.dp)) {
             OutlinedButton(
-                onClick = onAddToCart,
+                onClick = {
+
+                },
                 modifier = Modifier.height(48.dp),
                 shape = RoundedCornerShape(4.dp),
                 enabled = product != null
