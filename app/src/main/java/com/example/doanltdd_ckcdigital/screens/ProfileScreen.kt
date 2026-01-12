@@ -46,7 +46,6 @@ fun ProfileScreen(
 ) {
     Scaffold(
         topBar = {
-            // Surface đen để StatusBar đồng nhất màu với TopBar
             Surface(color = Color.Black) {
                 CenterAlignedTopAppBar(
                     modifier = Modifier.statusBarsPadding(),
@@ -88,7 +87,6 @@ fun ProfileScreen(
                     .padding(vertical = 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Avatar tròn với viền mờ sang trọng
                 Box(
                     modifier = Modifier
                         .size(100.dp)
@@ -122,7 +120,6 @@ fun ProfileScreen(
                 }
             }
 
-            // --- PHẦN 2: CÁC PHÍM CHỨC NĂNG (NỀN TRẮNG SÁNG) ---
             Surface(
                 modifier = Modifier.fillMaxSize(),
                 color = Color(0xFFF8F9FA), // Màu trắng sữa nhẹ giúp mắt dễ chịu
@@ -133,7 +130,6 @@ fun ProfileScreen(
                         .padding(horizontal = 20.dp, vertical = 24.dp)
                         .fillMaxWidth()
                 ) {
-                    // Mục Chỉnh sửa
                     ProfileMenuItem(
                         icon = Icons.Default.Edit,
                         title = "Chỉnh sửa thông tin cá nhân",
@@ -143,12 +139,10 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Card Đơn mua
                     OrderSection()
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Mục Địa chỉ
                     ProfileMenuItem(
                         icon = Icons.Default.LocationOn,
                         title = "Quản lý địa chỉ",
@@ -158,7 +152,6 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Mục Yêu thích
                     ProfileMenuItem(
                         icon = Icons.Default.Favorite,
                         title = "Danh sách yêu thích",
@@ -168,7 +161,6 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(40.dp))
 
-                    // Nút Đăng xuất nổi bật trên nền trắng
                     Button(
                         onClick = onLogoutClick,
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
@@ -197,7 +189,6 @@ fun ProfileMenuItem(
     iconColor: Color,
     onClick: () -> Unit
 ) {
-    // Row sử dụng màu trắng tinh khiết để nổi bật trên nền trắng sữa của Surface
     Row(
         modifier = Modifier
             .fillMaxWidth()

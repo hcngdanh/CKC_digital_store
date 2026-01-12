@@ -48,7 +48,7 @@ fun ProductListScreen(
     onProductClick: (Int) -> Unit,
     onCartClick: () -> Unit,
     onProfileClick: ()-> Unit,
-    user: UserModel?, // Thêm tham số này
+    user: UserModel?,
     onLogout: () -> Unit,
 ) {
     var searchQuery by remember { mutableStateOf("") }

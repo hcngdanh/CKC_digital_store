@@ -52,7 +52,6 @@ fun EditAddressScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // Khai báo các State cho TextField
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var street by remember { mutableStateOf("") }
@@ -60,14 +59,11 @@ fun EditAddressScreen(
     var isDefault by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }
 
-    // TỰ ĐỘNG ĐIỀN THÔNG TIN TỪ API
     LaunchedEffect(addressId) {
         try {
             isLoading = true
-            // Gọi API lấy chi tiết địa chỉ
             val address = RetrofitClient.apiService.getAddressDetail(addressId)
 
-            // Gán dữ liệu vào các State để điền sẵn vào TextField
             name = address.ReceiverName
             phone = address.PhoneNumber
             street = address.StreetAddress
@@ -103,7 +99,6 @@ fun EditAddressScreen(
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                // Các TextField sẽ tự động có dữ liệu nhờ biến State đã gán ở trên
                 OutlinedTextField(
                     value = name, onValueChange = { name = it },
                     label = { Text("Họ tên") }, modifier = Modifier.fillMaxWidth()

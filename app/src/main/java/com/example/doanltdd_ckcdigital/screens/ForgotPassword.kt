@@ -29,11 +29,10 @@ fun ForgotPasswordScreen(
     onBackClick: () -> Unit
 ) {
     val context = LocalContext.current
-    var selectedMethod by remember { mutableStateOf("email") } // 'email' hoặc 'phone'
+    var selectedMethod by remember { mutableStateOf("email") }
     var emailInput by remember { mutableStateOf("") }
     var phoneInput by remember { mutableStateOf("") }
 
-    // Màu sắc đồng bộ với LoginScreen
     val accentColor = Color(0xFFE0E0E0)
     val textColor = Color.White
     val buttonColor = Color.White
@@ -48,7 +47,6 @@ fun ForgotPasswordScreen(
                 )
             )
     ) {
-        // Nút quay lại
         IconButton(
             onClick = onBackClick,
             modifier = Modifier
@@ -70,7 +68,6 @@ fun ForgotPasswordScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Logo
             AsyncImage(
                 model = "https://res.cloudinary.com/dczhi464d/image/upload/v1767096256/shoplogo_new_fi45zg.png",
                 contentDescription = "Logo",
@@ -97,7 +94,6 @@ fun ForgotPasswordScreen(
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
 
-            // Tabs chọn phương thức (Custom UI)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -106,7 +102,6 @@ fun ForgotPasswordScreen(
                     .padding(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Tab Email
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -134,7 +129,6 @@ fun ForgotPasswordScreen(
                     }
                 }
 
-                // Tab Số điện thoại
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -165,7 +159,6 @@ fun ForgotPasswordScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Input Field thay đổi dựa trên lựa chọn
             if (selectedMethod == "email") {
                 OutlinedTextField(
                     value = emailInput,

@@ -40,14 +40,12 @@ fun AddressListScreen(
     var isLoading by remember { mutableStateOf(true) }
     var selectedId by remember { mutableIntStateOf(-1) }
 
-    // Gọi API lấy danh sách địa chỉ khi vào màn hình
     LaunchedEffect(userId) {
         try {
             isLoading = true
             val response = RetrofitClient.apiService.getUserAddresses(userId)
             addressList.clear()
             addressList.addAll(response)
-            // Tìm địa chỉ mặc định để tích chọn sẵn
             selectedId = response.find { it.IsDefault == 1 }?.AddressID ?: -1
         } catch (e: Exception) {
             Toast.makeText(context, "Lỗi kết nối: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -71,7 +69,7 @@ fun AddressListScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onAddNewAddressClick,
-                containerColor = Color(0xFFFF4D1C), // Màu cam chủ đạo của CKC Digital
+                containerColor = Color(0xFFFF4D1C),
                 contentColor = Color.White,
                 shape = RoundedCornerShape(30.dp),
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
