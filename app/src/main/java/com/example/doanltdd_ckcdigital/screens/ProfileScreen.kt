@@ -42,6 +42,7 @@ fun ProfileScreen(
     user: UserModel?,
     onBackClick: () -> Unit,
     onLogoutClick: () -> Unit,
+    onEditProfileClick: () -> Unit,
     onAddressManageClick: () -> Unit
 ) {
     Scaffold(
@@ -134,7 +135,7 @@ fun ProfileScreen(
                         icon = Icons.Default.Edit,
                         title = "Chỉnh sửa thông tin cá nhân",
                         iconColor = Color.Black,
-                        onClick = { /* Handle edit profile */ }
+                        onClick = onEditProfileClick
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -156,7 +157,7 @@ fun ProfileScreen(
                         icon = Icons.Default.Favorite,
                         title = "Danh sách yêu thích",
                         iconColor = Color(0xFFE91E63),
-                        onClick = { /* Handle favorite */ }
+                        onClick = onEditProfileClick
                     )
 
                     Spacer(modifier = Modifier.height(40.dp))

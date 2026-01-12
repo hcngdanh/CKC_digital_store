@@ -127,7 +127,16 @@ fun AppNavGraph() {
                 },
                 onAddressManageClick = {
                     navController.navigate("address_list")
+                },
+                onEditProfileClick = {
+                    navController.navigate("edit_profile")
                 }
+            )
+        }
+
+        composable("edit_profile") {
+            EditProfileScreen (
+                onBackClick = { navController.popBackStack() }
             )
         }
 
