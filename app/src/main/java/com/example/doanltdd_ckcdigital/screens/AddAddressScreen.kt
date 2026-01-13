@@ -29,7 +29,6 @@ fun AddAddressScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // State cho các ô nhập liệu
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var street by remember { mutableStateOf("") }
@@ -94,7 +93,6 @@ fun AddAddressScreen(
 
                     scope.launch {
                         try {
-                            // AddressID gửi 0 vì server tự tăng (Auto Increment)
                             val newAddress = UserAddress(
                                 0, userId, name, phone, street, city, if (isDefault) 1 else 0
                             )

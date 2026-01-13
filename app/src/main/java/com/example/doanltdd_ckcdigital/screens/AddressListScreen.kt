@@ -29,12 +29,14 @@ import kotlinx.coroutines.launch
 @Composable
 fun AddressListScreen(
     userId: Int,
+    currentSelectedId: Int?,
     onBackClick: () -> Unit,
     onAddressSelected: (UserAddress) -> Unit,
     onEditClick: (Int) -> Unit,
     onAddNewAddressClick: () -> Unit
 ) {
     val context = LocalContext.current
+
     val scope = rememberCoroutineScope()
     val addressList = remember { mutableStateListOf<UserAddress>() }
     var isLoading by remember { mutableStateOf(true) }
@@ -43,12 +45,25 @@ fun AddressListScreen(
     LaunchedEffect(userId) {
         try {
             isLoading = true
-            val response = RetrofitClient.apiService.getUserAddresses(userId)
+            val dbData = RetrofitClient.apiService.getUserAddresses(userId)
+
+            val sortedDbData = if (currentSelectedId != null) {
+                dbData.sortedByDescending { it.AddressID == currentSelectedId }
+            } else {
+                dbData
+            }
+
             addressList.clear()
-            addressList.addAll(response)
-            selectedId = response.find { it.IsDefault == 1 }?.AddressID ?: -1
+            addressList.addAll(sortedDbData)
+
+            selectedId = if (currentSelectedId != null && currentSelectedId != -1) {
+                currentSelectedId
+            } else {
+                dbData.find { it.IsDefault == 1 }?.AddressID ?: -1
+            }
         } catch (e: Exception) {
-            Toast.makeText(context, "Lỗi kết nối: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Lỗi tải địa chỉ: ${e.message}", Toast.LENGTH_SHORT).show()
+            e.printStackTrace() 
         } finally {
             isLoading = false
         }

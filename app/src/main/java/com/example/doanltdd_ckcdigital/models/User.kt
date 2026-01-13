@@ -1,5 +1,8 @@
 package com.example.doanltdd_ckcdigital.models
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
+
 
 data class UserModel(
     val UserID: Int,
@@ -31,16 +34,16 @@ data class AuthResponse(
     val message: String,
     val data: UserModel?
 )
-
+@Parcelize
 data class UserAddress(
-    val AddressID: Int,    // Đảm bảo tên biến khớp chính xác từng chữ cái
+    val AddressID: Int,
     val UserID: Int,
     val ReceiverName: String,
     val PhoneNumber: String,
     val StreetAddress: String,
     val City: String,
     val IsDefault: Int
-)
+) : Parcelable
 
 data class SimpleResponse(
     val success: Boolean,
