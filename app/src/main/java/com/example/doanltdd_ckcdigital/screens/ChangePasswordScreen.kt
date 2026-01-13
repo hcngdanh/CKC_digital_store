@@ -66,7 +66,6 @@ fun ChangePasswordScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // 2. Mật khẩu mới
             PasswordField(
                 value = newPassword,
                 onValueChange = { newPassword = it },
@@ -77,7 +76,6 @@ fun ChangePasswordScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // 3. Xác nhận mật khẩu mới
             PasswordField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
