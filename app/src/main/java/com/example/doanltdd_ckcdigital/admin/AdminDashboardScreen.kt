@@ -1,5 +1,6 @@
-package com.example.doanltdd_ckcdigital.screens
+package com.example.doanltdd_ckcdigital.admin
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -8,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -15,7 +17,9 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,6 +29,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.doanltdd_ckcdigital.models.UserModel
+import com.example.doanltdd_ckcdigital.modelsimport.DashboardStatsResponse
+import com.example.doanltdd_ckcdigital.services.RetrofitClient
+import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 data class AdminFeature(
     val title: String,
@@ -48,6 +57,30 @@ fun AdminDashboardScreen(
     onLogout: () -> Unit,
     onNavigateToOrderManager: () -> Unit
 ) {
+    val scope = rememberCoroutineScope()
+    var dashboardStats by remember { mutableStateOf<DashboardStatsResponse?>(null) }
+    var isLoadingStats by remember { mutableStateOf(true) }
+    val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
+
+    LaunchedEffect(Unit) {
+        scope.launch {
+            isLoadingStats = true
+            try {
+                val response = RetrofitClient.apiService.getDashboardStats()
+
+                if (response.success) {
+                    dashboardStats = response.data
+                } else {
+                    Log.e("AdminDashboard", "Lỗi lấy thống kê: ${response.message}")
+                }
+            } catch (e: Exception) {
+                Log.e("AdminDashboard", "Lỗi mạng: ${e.message}")
+            } finally {
+                isLoadingStats = false
+            }
+        }
+    }
+
     val features = listOf(
         AdminFeature(
             "Quản lý Đơn hàng",
@@ -58,11 +91,35 @@ fun AdminDashboardScreen(
         )
     )
 
-    val stats = listOf(
-        DashboardStat("Doanh thu ngày", "12.500.000đ", Icons.Default.AttachMoney, Color(0xFF4CAF50)),
-        DashboardStat("Chờ xử lý", "5", Icons.Default.PendingActions, Color(0xFFFF9800)),
-        DashboardStat("Đã hoàn thành", "120", Icons.Default.CheckCircle, Color(0xFF2196F3))
-    )
+    // Tạo danh sách thống kê động từ state
+    val stats = remember(dashboardStats) {
+        dashboardStats?.let {
+            listOf(
+                DashboardStat(
+                    "Doanh thu ngày",
+                    formatter.format(it.dailyRevenue),
+                    Icons.Default.AttachMoney,
+                    Color(0xFF4CAF50)
+                ),
+                DashboardStat(
+                    "Chờ xử lý",
+                    it.pendingOrders.toString(),
+                    Icons.Default.PendingActions,
+                    Color(0xFFFF9800)
+                ),
+                DashboardStat(
+                    "Đã hoàn thành",
+                    it.completedOrdersToday.toString(),
+                    Icons.Default.CheckCircle,
+                    Color(0xFF2196F3)
+                )
+            )
+        } ?: listOf( // Dữ liệu mặc định hoặc khi đang tải
+            DashboardStat("Doanh thu ngày", "...", Icons.Default.AttachMoney, Color(0xFF4CAF50)),
+            DashboardStat("Chờ xử lý", "...", Icons.Default.PendingActions, Color(0xFFFF9800)),
+            DashboardStat("Đã hoàn thành", "...", Icons.Default.CheckCircle, Color(0xFF2196F3))
+        )
+    }
 
     Scaffold(
         containerColor = Color(0xFFF8F9FA),
@@ -94,30 +151,38 @@ fun AdminDashboardScreen(
                 .padding(horizontal = 16.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-
             AdminHeaderCardUpdated(user)
-
             Spacer(modifier = Modifier.height(20.dp))
 
             Text("Tổng quan hôm nay", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
             Spacer(modifier = Modifier.height(8.dp))
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(stats.size) { index ->
-                    StatCard(stats[index])
+
+            if (isLoadingStats) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    stats.forEach { stat ->
+                        StatCard(stat.copy(value = "..."))
+                    }
+                }
+            } else {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(stats) { stat ->
+                        StatCard(stat)
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-
             Text("Chức năng quản lý", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
             Spacer(modifier = Modifier.height(12.dp))
 
             LazyVerticalGrid(
                 columns = GridCells.Fixed(1),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
@@ -179,7 +244,10 @@ fun StatCard(stat: DashboardStat) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    modifier = Modifier.size(28.dp).clip(CircleShape).background(stat.color.copy(alpha = 0.1f)),
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(stat.color.copy(alpha = 0.1f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(imageVector = stat.icon, contentDescription = null, tint = stat.color, modifier = Modifier.size(16.dp))

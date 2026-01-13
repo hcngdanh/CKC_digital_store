@@ -2,5 +2,6 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/ServerAPI/Server_Api_DoAn" vcs="Git" />
   </component>
 </project>
