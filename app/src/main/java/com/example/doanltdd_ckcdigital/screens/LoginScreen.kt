@@ -172,7 +172,7 @@ fun LoginScreen(
             Button(
                 onClick = {
                     viewModel.login(email, password) { roleId ->
-                        if (roleId == 1) { // 1 là Admin
+                        if (roleId == 1) {
                             Toast.makeText(context, "Xin chào Admin!", Toast.LENGTH_SHORT).show()
                             onNavigateToAdmin()
                         } else {

@@ -112,7 +112,7 @@ fun ProductListScreen(
                 products = response.data
             }
         } catch (e: Exception) {
-            Log.e("API_ERROR", "Lỗi kết nối: ${e.message}") // Xem lỗi ở Logcat
+            Log.e("API_ERROR", "Lỗi kết nối: ${e.message}")
         } finally {
             isLoading = false
         }
