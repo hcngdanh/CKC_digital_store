@@ -2,6 +2,7 @@ package com.example.doanltdd_ckcdigital.services
 
 import com.example.doanltdd_ckcdigital.models.ApiResponse
 import com.example.doanltdd_ckcdigital.models.AuthResponse
+import com.example.doanltdd_ckcdigital.models.CartItemResponse
 import com.example.doanltdd_ckcdigital.models.CategoryModel
 import com.example.doanltdd_ckcdigital.models.LoginRequest
 import com.example.doanltdd_ckcdigital.models.ProductAddToCart
@@ -51,8 +52,6 @@ interface ApiService {
     suspend fun addAddress(@Body address: UserAddress): SimpleResponse
 
 
-    @POST("api/cart/add")
-    suspend fun addToRemoteCart(@Body request: Map<String, Int>): SimpleResponse
     @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): AuthResponse
 
@@ -66,7 +65,15 @@ interface ApiService {
     suspend fun addToCart(@Body request: ProductAddToCart): SimpleResponse
 
     @GET("api/cart/{userId}")
-    suspend fun getCartItems(): ApiResponse<List<ProductModel>>
+    suspend fun getCartItems(@Path("userId") userId: Int): ApiResponse<List<CartItemResponse>>
+
+    @PUT("api/cart/update")
+    suspend fun updateCartQuantity(@Body request: Map<String, Int>): SimpleResponse
+
+    // Hàm xóa sản phẩm theo CartItemID
+    @DELETE("api/cart/remove/{cartItemId}")
+    suspend fun removeCartItem(@Path("cartItemId") cartItemId: Int): SimpleResponse
+
 
     @PUT("api/auth/update-profile/{userId}")
     suspend fun updateProfile(

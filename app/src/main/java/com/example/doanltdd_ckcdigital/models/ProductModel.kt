@@ -38,6 +38,7 @@ data class CategoryModel(
 
 data class ProductAddToCart(
     val userId:Int,
+    @SerializedName("productId")
     val productID: Int,
     val quantity: Int
 )

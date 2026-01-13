@@ -57,8 +57,17 @@ fun CheckoutScreen(
     }
 
     val displayItems = if (buyNowProductId != -1) {
-        buyNowProduct?.let {
-            listOf(CartItem(it, it.ProductID, it.ProductName, it.Price, it.ThumbnailURL, 1))
+        buyNowProduct?.let { product ->
+            listOf(
+                CartItem(
+                    CartItemID = 0,
+                    ProductID = product.ProductID,
+                    ProductName = product.ProductName,
+                    Price = product.Price,
+                    ThumbnailURL = product.ThumbnailURL,
+                    quantity = 1
+                )
+            )
         } ?: emptyList()
     } else {
         CartManager.cartItems

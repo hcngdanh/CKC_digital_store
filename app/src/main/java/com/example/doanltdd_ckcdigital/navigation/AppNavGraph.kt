@@ -2,9 +2,11 @@ package com.example.doanltdd_ckcdigital.navigation
 
 import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -16,10 +18,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.doanltdd_ckcdigital.admin.AdminDashboardScreen
 import com.example.doanltdd_ckcdigital.screens.*
+import com.example.doanltdd_ckcdigital.services.RetrofitClient
 import com.example.doanltdd_ckcdigital.utils.CartManager
 import com.example.doanltdd_ckcdigital.utils.SessionManager
 import com.example.doanltdd_ckcdigital.viewmodels.AuthViewModel
 import com.example.doanltdd_ckcdigital.viewmodels.ProductViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavGraph() {
@@ -36,6 +40,24 @@ fun AppNavGraph() {
 
     val productViewModel: ProductViewModel = viewModel()
     val isLoading by productViewModel.isLoading.collectAsState() // Quan sát trạng thái load
+
+    val currentUser = sessionManager.currentUser
+
+    LaunchedEffect(currentUser) {
+        if (currentUser != null) {
+            try {
+                val response = RetrofitClient.apiService.getCartItems(currentUser.UserID)
+                if (response.success) {
+                    // Hàm này giờ nhận List<CartItemResponse> hoàn toàn độc lập với ProductModel
+                    CartManager.syncCartFromServer(response.data)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        } else {
+            CartManager.clearCart()
+        }
+    }
 
     NavHost(navController = navController, startDestination = "splash") {
 
@@ -76,6 +98,7 @@ fun AppNavGraph() {
             arguments = listOf(navArgument("productId") { type = NavType.IntType })
         ) { backStackEntry ->
             val productId = backStackEntry.arguments?.getInt("productId")
+            val scope = rememberCoroutineScope()
             if (productId != null) {
                 ProductDetailScreen(
                     productId = productId,
@@ -88,9 +111,20 @@ fun AppNavGraph() {
                             navController.navigate("login")
                         }
                     },
-                    onAddToCart = { p ->
-                        CartManager.addToCart(p)
-                        Toast.makeText(context, "Đã thêm vào giỏ", Toast.LENGTH_SHORT).show()
+                    // 2. SỬA LẠI ĐOẠN onAddToCart NÀY
+                    onAddToCart = { product ->
+                        val user = sessionManager.currentUser
+                        if (user != null) {
+                            scope.launch {
+                                // Gọi hàm addToCart trong CartManager
+                                CartManager.addToCart(user.UserID, product)
+                                Toast.makeText(context, "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            // Chưa đăng nhập
+                            Toast.makeText(context, "Vui lòng đăng nhập", Toast.LENGTH_SHORT).show()
+                            navController.navigate("login")
+                        }
                     })
             }
         }

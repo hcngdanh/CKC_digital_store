@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.doanltdd_ckcdigital.utils.CartItem
 import com.example.doanltdd_ckcdigital.utils.CartManager
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -35,7 +36,7 @@ fun CartScreen(
     onCheckoutClick: () -> Unit
 ) {
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
-
+    val scope = rememberCoroutineScope()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -110,13 +111,25 @@ fun CartScreen(
             ) {
                 items(
                     items = CartManager.cartItems,
-                    key = { it.product.ProductID }
+                    key = { it.CartItemID }
                 ) { item ->
                     CartItemRow(
                         item = item,
-                        onIncrease = { CartManager.increaseQuantity(item) },
-                        onDecrease = { CartManager.decreaseQuantity(item) },
-                        onDelete = { CartManager.removeProduct(item) }
+                        onIncrease = {
+                            scope.launch {
+                                CartManager.increaseQuantity(item)
+                            }
+                        },
+                        onDecrease = {
+                            scope.launch {
+                                CartManager.decreaseQuantity(item)
+                            }
+                        },
+                        onDelete = {
+                            scope.launch {
+                                CartManager.removeProduct(item)
+                            }
+                        }
                     )
                 }
             }
@@ -144,7 +157,7 @@ fun CartItemRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = item.product.ThumbnailURL ?: "https://via.placeholder.com/150",
+                model = item.ThumbnailURL ?: "https://via.placeholder.com/150",
                 contentDescription = null,
                 modifier = Modifier
                     .size(80.dp)
@@ -156,7 +169,7 @@ fun CartItemRow(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = item.product.ProductName,
+                    text = item.ProductName,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     fontWeight = FontWeight.Medium,
@@ -164,7 +177,7 @@ fun CartItemRow(
                 )
 
                 Text(
-                    text = formatter.format(item.product.Price),
+                    text = formatter.format(item.Price),
                     color = Color(0xFFD32F2F),
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
