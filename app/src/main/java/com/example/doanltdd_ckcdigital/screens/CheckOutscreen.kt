@@ -1,8 +1,11 @@
 package com.example.doanltdd_ckcdigital.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -26,6 +29,7 @@ import coil.compose.AsyncImage
 import com.example.doanltdd_ckcdigital.models.ProductModel
 import com.example.doanltdd_ckcdigital.models.UserAddress
 import com.example.doanltdd_ckcdigital.models.UserModel
+import com.example.doanltdd_ckcdigital.models.Voucher
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
 import com.example.doanltdd_ckcdigital.utils.CartItem
 import com.example.doanltdd_ckcdigital.utils.CartManager
@@ -45,9 +49,33 @@ fun CheckoutScreen(
     var buyNowProduct by remember { mutableStateOf<ProductModel?>(null) }
     var selectedPaymentMethod by remember { mutableStateOf("COD") }
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
-    var selectedVoucher by remember { mutableStateOf<String?>(null) }
-    var discountAmount by remember { mutableDoubleStateOf(0.0) }
 
+    // State cho Voucher
+    var selectedVoucher by remember { mutableStateOf<Voucher?>(null) }
+    var showVoucherSheet by remember { mutableStateOf(false) }
+    val voucherList = remember { mutableStateListOf<Voucher>() }
+    var isLoadingVoucher by remember { mutableStateOf(false) }
+
+    // 1. LẤY DANH SÁCH VOUCHER (Chạy 1 lần khi mở màn hình)
+    LaunchedEffect(Unit) {
+        try {
+            isLoadingVoucher = true
+            // Gọi API lấy voucher (Đảm bảo ApiService có hàm getVouchers)
+            val response = RetrofitClient.apiService.getVouchers()
+
+            // Xử lý dữ liệu (Tuỳ thuộc API trả về ApiResponse hay List)
+            if (response.success) {
+                voucherList.clear()
+                voucherList.addAll(response.data)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            isLoadingVoucher = false
+        }
+    }
+
+    // 2. LẤY CHI TIẾT SẢN PHẨM (Nếu là mua ngay)
     LaunchedEffect(buyNowProductId) {
         if (buyNowProductId != -1) {
             try {
@@ -70,7 +98,15 @@ fun CheckoutScreen(
     }
 
     val totalPrice = displayItems.sumOf { it.Price * it.quantity }
-    val finalPrice = totalPrice - discountAmount
+
+    // Tính toán giảm giá
+    val discountAmount = if (selectedVoucher != null && totalPrice >= selectedVoucher!!.MinOrderValue) {
+        selectedVoucher!!.DiscountAmount
+    } else {
+        0.0
+    }
+
+    val finalPrice = (totalPrice - discountAmount).coerceAtLeast(0.0)
 
     Scaffold(
         topBar = {
@@ -94,6 +130,7 @@ fun CheckoutScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // --- CARD ĐỊA CHỈ ---
             Card(
                 onClick = onAddressClick,
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -124,48 +161,33 @@ fun CheckoutScreen(
                         }
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = displayName,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
+                            Text(displayName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                             Spacer(modifier = Modifier.width(8.dp))
                             if (displayPhone.isNotEmpty()) {
-                                Text(
-                                    text = "(+84) ${displayPhone.removePrefix("0")}",
-                                    fontSize = 14.sp,
-                                    color = Color.Gray
-                                )
+                                Text("(+84) ${displayPhone.removePrefix("0")}", fontSize = 14.sp, color = Color.Gray)
                             }
                         }
                         Spacer(modifier = Modifier.height(4.dp))
+                        // FIX: Thay ShopeeRed bằng mã màu cứng
                         Text(
                             text = displayAddressText,
                             fontSize = 14.sp,
-                            color = if (selectedAddress != null) Color.DarkGray else ShopeeRed,
+                            color = if (selectedAddress != null) Color.DarkGray else Color(0xFFFF4D1C),
                             lineHeight = 20.sp
                         )
                     }
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = null,
-                        tint = Color.LightGray
-                    )
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = Color.LightGray)
                 }
             }
 
+            // --- CARD SẢN PHẨM ---
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(2.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.ShoppingCart,
-                            null,
-                            tint = Color.Gray,
-                            modifier = Modifier.size(20.dp)
-                        )
+                        Icon(Icons.Default.ShoppingCart, null, tint = Color.Gray, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
                         Text("Sản phẩm đã chọn", fontWeight = FontWeight.Bold)
                     }
@@ -182,90 +204,54 @@ fun CheckoutScreen(
                                 contentScale = ContentScale.Fit
                             )
                             Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                                Text(
-                                    item.ProductName,
-                                    fontSize = 14.sp,
-                                    maxLines = 1,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Text(
-                                    text = "${formatter.format(item.Price)} x ${item.quantity}",
-                                    color = Color.Gray, fontSize = 13.sp
-                                )
+                                Text(item.ProductName, fontSize = 14.sp, maxLines = 1, fontWeight = FontWeight.Medium)
+                                Text("${formatter.format(item.Price)} x ${item.quantity}", color = Color.Gray, fontSize = 13.sp)
                             }
                         }
                         HorizontalDivider(color = Color(0xFFF1F1F1))
                     }
                 }
             }
+
+            // --- CARD VOUCHER ---
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(2.dp),
-                modifier = Modifier.clickable {
-                    if (selectedVoucher == null) {
-                        selectedVoucher = "GIAM50K"
-                        discountAmount = 50000.0
-                    } else {
-                        selectedVoucher = null
-                        discountAmount = 0.0
-                    }
-                }
+                modifier = Modifier.clickable { showVoucherSheet = true }
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.ConfirmationNumber,
-                            contentDescription = null,
-                            tint = Color(0xFFFF4D1C),
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(Icons.Default.ConfirmationNumber, null, tint = Color(0xFFFF4D1C), modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
                         Text("Shopee Voucher", fontWeight = FontWeight.Bold)
                     }
-
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (selectedVoucher != null) {
-                            Text(
-                                text = "- ${formatter.format(discountAmount)}",
-                                color = Color(0xFFFF4D1C),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
-                            )
+                            if (totalPrice < selectedVoucher!!.MinOrderValue) {
+                                Text("Chưa đủ đ.kiện", color = Color.Gray, fontSize = 14.sp)
+                            } else {
+                                Text("- ${formatter.format(discountAmount)}", color = Color(0xFFFF4D1C), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                            }
                         } else {
-                            Text(
-                                text = "Chọn hoặc nhập mã",
-                                color = Color.Gray,
-                                fontSize = 14.sp
-                            )
+                            Text("Chọn hoặc nhập mã", color = Color.Gray, fontSize = 14.sp)
                         }
-
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = null,
-                            tint = Color.LightGray
-                        )
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = Color.LightGray)
                     }
                 }
             }
 
+            // --- CARD THANH TOÁN ---
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(2.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.Payment,
-                            null,
-                            tint = Color.Gray,
-                            modifier = Modifier.size(20.dp)
-                        )
+                        Icon(Icons.Default.Payment, null, tint = Color.Gray, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
                         Text("Phương thức thanh toán", fontWeight = FontWeight.Bold)
                     }
@@ -295,6 +281,7 @@ fun CheckoutScreen(
                 }
             }
 
+            // --- CARD TÓM TẮT ---
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(2.dp)
@@ -314,10 +301,7 @@ fun CheckoutScreen(
                     }
 
                     if (discountAmount > 0) {
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("Voucher giảm giá", color = Color.Gray, fontSize = 14.sp)
                             Text("-${formatter.format(discountAmount)}", color = Color(0xFFFF4D1C))
                         }
@@ -337,6 +321,7 @@ fun CheckoutScreen(
                 }
             }
 
+            // NÚT ĐẶT HÀNG
             Button(
                 onClick = onOrderSuccess,
                 modifier = Modifier.fillMaxWidth().height(54.dp).padding(bottom = 8.dp),
@@ -344,6 +329,54 @@ fun CheckoutScreen(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text("XÁC NHẬN ĐẶT HÀNG", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
+        }
+
+        // --- BOTTOM SHEET VOUCHER ---
+        if (showVoucherSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showVoucherSheet = false },
+                containerColor = Color.White
+            ) {
+                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 32.dp)) {
+                    Text("Chọn Shopee Voucher", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.padding(bottom = 16.dp).align(Alignment.CenterHorizontally))
+
+                    if (isLoadingVoucher) {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally), color = Color(0xFFFF4D1C))
+                    } else if (voucherList.isEmpty()) {
+                        Text("Hiện không có voucher nào", modifier = Modifier.align(Alignment.CenterHorizontally).padding(20.dp), color = Color.Gray)
+                    } else {
+                        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            items(voucherList) { voucher ->
+                                val isEligible = totalPrice >= voucher.MinOrderValue
+                                val isSelected = selectedVoucher?.VoucherID == voucher.VoucherID
+
+                                Card(
+                                    onClick = {
+                                        if (isEligible) {
+                                            selectedVoucher = if (isSelected) null else voucher
+                                            showVoucherSheet = false
+                                        }
+                                    },
+                                    colors = CardDefaults.cardColors(containerColor = if (isEligible) Color(0xFFFFF5F1) else Color(0xFFF5F5F5)),
+                                    border = if (isSelected) BorderStroke(1.dp, Color(0xFFFF4D1C)) else null,
+                                    enabled = isEligible
+                                ) {
+                                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(voucher.VoucherCode, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = if(isEligible) Color.Black else Color.Gray)
+                                            Text(voucher.Description, fontSize = 14.sp, color = Color.Gray)
+                                            if (!isEligible) {
+                                                Text("Đơn tối thiểu ${formatter.format(voucher.MinOrderValue)}", fontSize = 12.sp, color = Color.Red)
+                                            }
+                                        }
+                                        if (isSelected) Icon(Icons.Default.ConfirmationNumber, null, tint = Color(0xFFFF4D1C))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

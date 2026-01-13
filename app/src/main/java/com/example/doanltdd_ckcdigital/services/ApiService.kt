@@ -12,6 +12,7 @@ import com.example.doanltdd_ckcdigital.models.ReviewResponse
 import com.example.doanltdd_ckcdigital.models.SimpleResponse
 import com.example.doanltdd_ckcdigital.models.UserAddress
 import com.example.doanltdd_ckcdigital.models.UserModel
+import com.example.doanltdd_ckcdigital.models.Voucher
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -68,6 +69,9 @@ interface ApiService {
     @GET("api/cart/{userId}")
     suspend fun getCartItems(): ApiResponse<List<ProductModel>>
 
+    @GET("api/vouchers")
+    suspend fun getVouchers(): ApiResponse<List<Voucher>>
+
     @PUT("api/auth/update-profile/{userId}")
     suspend fun updateProfile(
         @Path("userId") userId: Int,
@@ -84,7 +88,7 @@ interface ApiService {
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "http://10.0.2.2:3000/"
+    private const val BASE_URL = "https://server-api-doan.onrender.com"
 
     val apiService: ApiService by lazy {
         Retrofit.Builder()
