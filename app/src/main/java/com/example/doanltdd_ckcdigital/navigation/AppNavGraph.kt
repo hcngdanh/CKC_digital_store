@@ -34,9 +34,9 @@ fun AppNavGraph() {
 
     val productViewModel: ProductViewModel = viewModel()
     val isLoading by productViewModel.isLoading.collectAsState()
+
     val currentUser = sessionManager.currentUser
 
-    // Tự động tải giỏ hàng
     LaunchedEffect(currentUser) {
         if (currentUser != null) {
             try {
@@ -135,10 +135,10 @@ fun AppNavGraph() {
             val user = sessionManager.currentUser
             val buyNowId = backStackEntry.arguments?.getInt("productId") ?: -1
             val selectedAddressFromList = backStackEntry.savedStateHandle.get<UserAddress>("selected_address")
+
             if (user != null) {
                 CheckoutScreen(
                     user = user,
-                    // FIX LỖI 1: Thêm tham số selectedAddress (để null mặc định)
                     selectedAddress = selectedAddressFromList,
                     onBackClick = { navController.popBackStack() },
                     onAddressClick = { navController.navigate("address_list") },
@@ -149,7 +149,7 @@ fun AppNavGraph() {
                     }
                 )
             } else {
-                navController.navigate("login")
+                LaunchedEffect(Unit) { navController.navigate("login") }
             }
         }
 
@@ -169,7 +169,9 @@ fun AppNavGraph() {
                     onEditClick = { id -> navController.navigate("edit_address/$id") },
                     onAddNewAddressClick = { navController.navigate("add_address") }
                 )
-            } else { navController.navigate("login") }
+            } else {
+                LaunchedEffect(Unit) { navController.navigate("login") }
+            }
         }
 
         composable("admin_dashboard") {
@@ -188,8 +190,10 @@ fun AppNavGraph() {
                     }
                 )
             } else {
-                navController.navigate("login") {
-                    popUpTo("admin_dashboard") { inclusive = true }
+                LaunchedEffect(Unit) {
+                    navController.navigate("login") {
+                        popUpTo("admin_dashboard") { inclusive = true }
+                    }
                 }
             }
         }
@@ -200,7 +204,6 @@ fun AppNavGraph() {
             )
         }
 
-        // --- Các phần còn lại giữ nguyên ---
         composable("profile") {
             val user = sessionManager.currentUser
             if (user != null) {
@@ -216,55 +219,101 @@ fun AppNavGraph() {
                     onEditProfileClick = { navController.navigate("edit_profile") },
                     onPasswordChangeClick = { navController.navigate("change_password") }
                 )
-            } else { navController.navigate("login") }
+            } else {
+                LaunchedEffect(Unit) { navController.navigate("login") }
+            }
         }
 
         composable("edit_profile") {
-            val currentUser = sessionManager.getUser()
-            EditProfileScreen(
-                user = currentUser,
-                sessionManager = sessionManager,
-                onBackClick = { navController.popBackStack() },
-                onSaveSuccess = { navController.popBackStack(); Toast.makeText(context, "Cập nhật thành công!", Toast.LENGTH_SHORT).show() }
-            )
+            val user = sessionManager.currentUser
+            if (user != null) {
+                EditProfileScreen(
+                    user = user,
+                    sessionManager = sessionManager,
+                    onBackClick = { navController.popBackStack() },
+                    onSaveSuccess = {
+                        navController.popBackStack()
+                        Toast.makeText(context, "Cập nhật thành công!", Toast.LENGTH_SHORT).show()
+                    }
+                )
+            } else {
+                LaunchedEffect(Unit) { navController.navigate("login") }
+            }
         }
 
         composable("change_password") {
             val user = sessionManager.currentUser
             if(user != null) {
-                ChangePasswordScreen(userId = user.UserID, onBackClick = { navController.popBackStack() }, onSuccess = {
-                    sessionManager.clearSession()
-                    navController.navigate("login") { popUpTo(navController.graph.startDestinationId) { inclusive = true }; launchSingleTop = true }
-                    Toast.makeText(context, "Vui lòng đăng nhập lại", Toast.LENGTH_LONG).show()
-                })
+                ChangePasswordScreen(
+                    userId = user.UserID,
+                    onBackClick = { navController.popBackStack() },
+                    onSuccess = {
+                        sessionManager.clearSession()
+                        navController.navigate("login") {
+                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                        Toast.makeText(context, "Vui lòng đăng nhập lại", Toast.LENGTH_LONG).show()
+                    }
+                )
+            } else {
+                LaunchedEffect(Unit) { navController.navigate("login") }
             }
         }
 
         composable("add_address") {
             val user = sessionManager.currentUser
-            if (user != null) AddAddressScreen(userId = user.UserID, onBackClick = { navController.popBackStack() }, onSaveSuccess = { navController.popBackStack() })
+            if (user != null) {
+                AddAddressScreen(
+                    userId = user.UserID,
+                    onBackClick = { navController.popBackStack() },
+                    onSaveSuccess = { navController.popBackStack() }
+                )
+            } else {
+                LaunchedEffect(Unit) { navController.navigate("login") }
+            }
         }
 
         composable("edit_address/{addressId}", arguments = listOf(navArgument("addressId") { type = NavType.IntType })) { backStackEntry ->
             val addressId = backStackEntry.arguments?.getInt("addressId") ?: -1
-            EditAddressScreen(addressId = addressId, onBackClick = { navController.popBackStack() }, onSaveSuccess = { navController.popBackStack() })
+            EditAddressScreen(
+                addressId = addressId,
+                onBackClick = { navController.popBackStack() },
+                onSaveSuccess = { navController.popBackStack() }
+            )
         }
 
         composable("login") {
-            LoginScreen(viewModel = authViewModel, onNavigateToHome = { navController.navigate("product_list") { popUpTo("login") { inclusive = true } } },
+            LoginScreen(
+                viewModel = authViewModel,
+                onNavigateToHome = { navController.navigate("product_list") { popUpTo("login") { inclusive = true } } },
                 onNavigateToAdmin = { navController.navigate("admin_dashboard") { popUpTo("login") { inclusive = true } } },
-                onNavigateToRegister = { navController.navigate("register") }, onNavigateToForgotPassword = { navController.navigate("forgot_password") }, onBack = { navController.popBackStack() })
+                onNavigateToRegister = { navController.navigate("register") },
+                onNavigateToForgotPassword = { navController.navigate("forgot_password") },
+                onBack = { navController.popBackStack() }
+            )
         }
 
         composable("register") {
-            RegisterScreen(viewModel = authViewModel, onRegisterSuccess = {}, onNavigateToLogin = { navController.popBackStack() }, onBack = { navController.popBackStack() })
+            RegisterScreen(
+                viewModel = authViewModel,
+                onRegisterSuccess = {},
+                onNavigateToLogin = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
+            )
         }
 
-        composable("forgot_password") { ForgotPasswordScreen(onBackClick = { navController.popBackStack() }) }
+        composable("forgot_password") {
+            ForgotPasswordScreen(onBackClick = { navController.popBackStack() })
+        }
 
         composable("order_history") {
             val user = sessionManager.currentUser
-            if (user != null) OrderHistoryScreen(userId = user.UserID, onBackClick = { navController.popBackStack() }) else navController.navigate("login")
+            if (user != null) {
+                OrderHistoryScreen(userId = user.UserID, onBackClick = { navController.popBackStack() })
+            } else {
+                LaunchedEffect(Unit) { navController.navigate("login") }
+            }
         }
 
         composable("order_detail") { OrderDetailScreen() }
