@@ -2,13 +2,16 @@ package com.example.doanltdd_ckcdigital.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
@@ -27,12 +30,12 @@ import androidx.compose.ui.unit.sp
 import java.text.NumberFormat
 import java.util.Locale
 
-enum class OrderStatus(val label: String, val color: Color) {
-    ALL("Tất cả", Color.Black),
-    PENDING("Chờ xác nhận", Color(0xFFFF9800)),
-    SHIPPING("Đang giao", Color(0xFF2196F3)),
-    COMPLETED("Hoàn thành", Color(0xFF4CAF50)),
-    CANCELLED("Đã hủy", Color(0xFFE91E63))
+enum class OrderStatus(val label: String, val color: Color, val description: String) {
+    ALL("Tất cả", Color.Black, ""),
+    PENDING("Chờ xác nhận", Color(0xFFFF9800), "Đơn hàng mới tạo, chờ duyệt"),
+    SHIPPING("Đang giao", Color(0xFF2196F3), "Đang vận chuyển đến khách"),
+    COMPLETED("Hoàn thành", Color(0xFF4CAF50), "Khách đã nhận và thanh toán"),
+    CANCELLED("Đã hủy", Color(0xFFE91E63), "Đơn hàng bị hủy bỏ")
 }
 
 data class AdminOrder(
@@ -62,7 +65,7 @@ fun AdminOrderManagerScreen(
     }
 
     var selectedFilter by remember { mutableStateOf(OrderStatus.ALL) }
-    var showStatusDialog by remember { mutableStateOf(false) }
+    var showBottomSheet by remember { mutableStateOf(false) }
     var selectedOrderForEdit by remember { mutableStateOf<AdminOrder?>(null) }
 
     val filteredList = if (selectedFilter == OrderStatus.ALL) {
@@ -80,15 +83,12 @@ fun AdminOrderManagerScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
         containerColor = Color(0xFFF5F5F5)
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-
             LazyRow(
                 contentPadding = PaddingValues(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -123,7 +123,7 @@ fun AdminOrderManagerScreen(
                             order = order,
                             onEditStatus = {
                                 selectedOrderForEdit = order
-                                showStatusDialog = true
+                                showBottomSheet = true
                             }
                         )
                     }
@@ -132,17 +132,21 @@ fun AdminOrderManagerScreen(
         }
     }
 
-    if (showStatusDialog && selectedOrderForEdit != null) {
-        StatusUpdateDialog(
+    if (showBottomSheet && selectedOrderForEdit != null) {
+        OrderStatusBottomSheet(
             currentStatus = selectedOrderForEdit!!.status,
-            onDismiss = { showStatusDialog = false },
-            onConfirm = { newStatus ->
+            onDismiss = { showBottomSheet = false },
+            onStatusSelected = { newStatus, cancelReason ->
                 val index = orders.indexOfFirst { it.id == selectedOrderForEdit!!.id }
                 if (index != -1) {
                     orders[index] = orders[index].copy(status = newStatus)
-                    Toast.makeText(context, "Đã cập nhật trạng thái: ${newStatus.label}", Toast.LENGTH_SHORT).show()
+                    if (newStatus == OrderStatus.CANCELLED) {
+                        Toast.makeText(context, "Đã hủy đơn. Lý do: $cancelReason", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, "Đã cập nhật: ${newStatus.label}", Toast.LENGTH_SHORT).show()
+                    }
                 }
-                showStatusDialog = false
+                showBottomSheet = false
             }
         )
     }
@@ -162,21 +166,14 @@ fun AdminOrderCard(order: AdminOrder, onEditStatus: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = order.id,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-                Text(
-                    text = order.date,
-                    fontSize = 12.sp,
-                    color = Color.Gray
-                )
+                Text(text = order.id, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(text = order.date, fontSize = 12.sp, color = Color.Gray)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
             HorizontalDivider(color = Color(0xFFEEEEEE))
             Spacer(modifier = Modifier.height(8.dp))
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Khách hàng: ", fontSize = 13.sp, color = Color.Gray)
                 Text(order.customerName, fontSize = 13.sp, fontWeight = FontWeight.Medium)
@@ -210,31 +207,27 @@ fun AdminOrderCard(order: AdminOrder, onEditStatus: () -> Unit) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
                         color = order.status.color.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(4.dp)
+                        shape = RoundedCornerShape(6.dp)
                     ) {
                         Text(
                             text = order.status.label,
                             color = order.status.color,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    IconButton(
-                        onClick = onEditStatus,
-                        modifier = Modifier
-                            .size(32.dp)
-                            .background(Color(0xFFF5F5F5), CircleShape)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit",
-                            modifier = Modifier.size(16.dp),
-                            tint = Color.Black
-                        )
+                    if (order.status != OrderStatus.COMPLETED && order.status != OrderStatus.CANCELLED) {
+                        Spacer(modifier = Modifier.width(12.dp))
+                        IconButton(
+                            onClick = onEditStatus,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(Color(0xFFF5F5F5), CircleShape)
+                        ) {
+                            Icon(Icons.Default.Edit, "Edit", modifier = Modifier.size(16.dp), tint = Color.Black)
+                        }
                     }
                 }
             }
@@ -242,55 +235,110 @@ fun AdminOrderCard(order: AdminOrder, onEditStatus: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StatusUpdateDialog(
+fun OrderStatusBottomSheet(
     currentStatus: OrderStatus,
     onDismiss: () -> Unit,
-    onConfirm: (OrderStatus) -> Unit
+    onStatusSelected: (OrderStatus, String) -> Unit
 ) {
+    val sheetState = rememberModalBottomSheetState()
     var tempStatus by remember { mutableStateOf(currentStatus) }
+    var cancelReason by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
-    AlertDialog(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = { Text("Cập nhật trạng thái", fontWeight = FontWeight.Bold) },
-        text = {
-            Column {
-                OrderStatus.values().filter { it != OrderStatus.ALL }.forEach { status ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { tempStatus = status }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = (tempStatus == status),
-                            onClick = { tempStatus = status },
-                            colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF2196F3))
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+        sheetState = sheetState,
+        containerColor = Color.White
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Text(
+                text = "Cập nhật trạng thái",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            OrderStatus.values().filter { it != OrderStatus.ALL }.forEach { status ->
+                val isEnabled = status.ordinal > currentStatus.ordinal || status == OrderStatus.CANCELLED
+                val isSelected = tempStatus == status
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (isSelected) status.color.copy(alpha = 0.1f) else Color.Transparent)
+                        .clickable(enabled = isEnabled) { tempStatus = status }
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = isSelected,
+                        onClick = { if (isEnabled) tempStatus = status },
+                        enabled = isEnabled,
+                        colors = RadioButtonDefaults.colors(selectedColor = status.color)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
                         Text(
                             text = status.label,
-                            color = if (tempStatus == status) Color.Black else Color.Gray,
-                            fontWeight = if (tempStatus == status) FontWeight.Bold else FontWeight.Normal
+                            fontWeight = FontWeight.Bold,
+                            color = if (isEnabled) Color.Black else Color.Gray
+                        )
+                        Text(
+                            text = status.description,
+                            fontSize = 12.sp,
+                            color = if (isEnabled) Color.Gray else Color.LightGray
                         )
                     }
                 }
             }
-        },
-        confirmButton = {
+
+            if (tempStatus == OrderStatus.CANCELLED) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Lý do hủy đơn", fontWeight = FontWeight.Medium)
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = cancelReason,
+                    onValueChange = { cancelReason = it },
+                    placeholder = { Text("Nhập lý do (VD: Hết hàng, Khách hủy...)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFFFAFAFA),
+                        unfocusedContainerColor = Color(0xFFFAFAFA)
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             Button(
-                onClick = { onConfirm(tempStatus) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
+                onClick = {
+                    if (tempStatus == OrderStatus.CANCELLED && cancelReason.isBlank()) {
+                        Toast.makeText(context, "Vui lòng nhập lý do hủy", Toast.LENGTH_SHORT).show()
+                    } else {
+                        onStatusSelected(tempStatus, cancelReason)
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
             ) {
-                Text("Cập nhật")
+                Text("Xác nhận cập nhật", fontWeight = FontWeight.Bold)
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Hủy", color = Color.Gray)
-            }
-        },
-        containerColor = Color.White
-    )
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
 }
