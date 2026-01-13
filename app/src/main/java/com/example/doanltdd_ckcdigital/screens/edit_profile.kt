@@ -64,7 +64,6 @@ fun EditProfileScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Hiển thị Email (không cho sửa vì dùng làm ID đăng nhập)
             OutlinedTextField(
                 value = user?.Email ?: "",
                 onValueChange = {},

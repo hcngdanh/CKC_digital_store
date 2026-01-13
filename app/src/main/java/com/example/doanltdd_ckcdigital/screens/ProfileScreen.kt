@@ -99,7 +99,6 @@ fun ProfileScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     if (!user?.AvatarURL.isNullOrEmpty()) {
-                        // Hiển thị ảnh từ Database
                         AsyncImage(
                             model = user.AvatarURL,
                             contentDescription = "User Avatar",
@@ -107,7 +106,6 @@ fun ProfileScreen(
                             contentScale = ContentScale.Crop // Cắt ảnh cho vừa vòng tròn
                         )
                     } else {
-                        // Hiển thị Icon mặc định nếu không có ảnh
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = null,
