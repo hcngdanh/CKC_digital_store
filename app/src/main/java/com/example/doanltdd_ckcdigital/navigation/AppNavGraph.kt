@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.doanltdd_ckcdigital.models.UserAddress
 import com.example.doanltdd_ckcdigital.screens.*
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
 import com.example.doanltdd_ckcdigital.utils.CartManager
@@ -133,12 +134,12 @@ fun AppNavGraph() {
         ) { backStackEntry ->
             val user = sessionManager.currentUser
             val buyNowId = backStackEntry.arguments?.getInt("productId") ?: -1
-
+            val selectedAddressFromList = backStackEntry.savedStateHandle.get<UserAddress>("selected_address")
             if (user != null) {
                 CheckoutScreen(
                     user = user,
                     // FIX LỖI 1: Thêm tham số selectedAddress (để null mặc định)
-                    selectedAddress = null,
+                    selectedAddress = selectedAddressFromList,
                     onBackClick = { navController.popBackStack() },
                     onAddressClick = { navController.navigate("address_list") },
                     buyNowProductId = buyNowId,
@@ -157,10 +158,14 @@ fun AppNavGraph() {
             if (user != null) {
                 AddressListScreen(
                     userId = user.UserID,
-                    // FIX LỖI 2: Thêm tham số currentSelectedId (để -1 mặc định)
                     currentSelectedId = -1,
                     onBackClick = { navController.popBackStack() },
-                    onAddressSelected = { navController.popBackStack() },
+
+                    onAddressSelected = { address ->
+                        navController.previousBackStackEntry?.savedStateHandle?.set("selected_address", address)
+                        navController.popBackStack()
+                    },
+
                     onEditClick = { id -> navController.navigate("edit_address/$id") },
                     onAddNewAddressClick = { navController.navigate("add_address") }
                 )
