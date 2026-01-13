@@ -50,20 +50,16 @@ fun CheckoutScreen(
     var selectedPaymentMethod by remember { mutableStateOf("COD") }
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
 
-    // State cho Voucher
     var selectedVoucher by remember { mutableStateOf<Voucher?>(null) }
     var showVoucherSheet by remember { mutableStateOf(false) }
     val voucherList = remember { mutableStateListOf<Voucher>() }
     var isLoadingVoucher by remember { mutableStateOf(false) }
 
-    // 1. LẤY DANH SÁCH VOUCHER (Chạy 1 lần khi mở màn hình)
     LaunchedEffect(Unit) {
         try {
             isLoadingVoucher = true
-            // Gọi API lấy voucher (Đảm bảo ApiService có hàm getVouchers)
             val response = RetrofitClient.apiService.getVouchers()
 
-            // Xử lý dữ liệu (Tuỳ thuộc API trả về ApiResponse hay List)
             if (response.success) {
                 voucherList.clear()
                 voucherList.addAll(response.data)
@@ -75,7 +71,6 @@ fun CheckoutScreen(
         }
     }
 
-    // 2. LẤY CHI TIẾT SẢN PHẨM (Nếu là mua ngay)
     LaunchedEffect(buyNowProductId) {
         if (buyNowProductId != -1) {
             try {
@@ -99,7 +94,6 @@ fun CheckoutScreen(
 
     val totalPrice = displayItems.sumOf { it.Price * it.quantity }
 
-    // Tính toán giảm giá
     val discountAmount = if (selectedVoucher != null && totalPrice >= selectedVoucher!!.MinOrderValue) {
         selectedVoucher!!.DiscountAmount
     } else {
@@ -130,7 +124,6 @@ fun CheckoutScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // --- CARD ĐỊA CHỈ ---
             Card(
                 onClick = onAddressClick,
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -168,7 +161,6 @@ fun CheckoutScreen(
                             }
                         }
                         Spacer(modifier = Modifier.height(4.dp))
-                        // FIX: Thay ShopeeRed bằng mã màu cứng
                         Text(
                             text = displayAddressText,
                             fontSize = 14.sp,
@@ -180,7 +172,6 @@ fun CheckoutScreen(
                 }
             }
 
-            // --- CARD SẢN PHẨM ---
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(2.dp)
@@ -213,7 +204,6 @@ fun CheckoutScreen(
                 }
             }
 
-            // --- CARD VOUCHER ---
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(2.dp),
@@ -244,7 +234,6 @@ fun CheckoutScreen(
                 }
             }
 
-            // --- CARD THANH TOÁN ---
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(2.dp)
@@ -281,7 +270,6 @@ fun CheckoutScreen(
                 }
             }
 
-            // --- CARD TÓM TẮT ---
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(2.dp)
