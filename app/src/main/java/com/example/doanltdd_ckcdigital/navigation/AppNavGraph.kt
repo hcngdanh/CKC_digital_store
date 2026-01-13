@@ -172,7 +172,6 @@ fun AppNavGraph() {
                     userId = user.UserID,
                     onBackClick = { navController.popBackStack() },
                     onSuccess = {
-                        // Khi đổi mật khẩu thành công, thường sẽ bắt đăng nhập lại
                         sessionManager.clearSession()
                         Toast.makeText(context, "Vui lòng đăng nhập lại", Toast.LENGTH_SHORT).show()
                         navController.navigate("login") {
@@ -181,7 +180,6 @@ fun AppNavGraph() {
                     }
                 )
             } else {
-                // Nếu không tìm thấy user (lỗi session), quay về login
                 navController.navigate("login")
             }
         }
@@ -272,7 +270,7 @@ fun AppNavGraph() {
                         }
                     },
                     onNavigateToOrderManager = {
-                        Toast.makeText(context, "Quản lý đơn hàng", Toast.LENGTH_SHORT).show()
+                        navController.navigate("admin_order_manager")
                     }
                 )
             } else {
@@ -280,6 +278,12 @@ fun AppNavGraph() {
                     popUpTo("admin_dashboard") { inclusive = true }
                 }
             }
+        }
+
+        composable("admin_order_manager") {
+            AdminOrderManagerScreen(
+                onBackClick = { navController.popBackStack() }
+            )
         }
     }
 }

@@ -45,27 +45,7 @@ fun AddressListScreen(
     LaunchedEffect(userId) {
         try {
             isLoading = true
-            //val response = RetrofitClient.apiService.getUserAddresses(userId)
-//            if (response.success) { // Giả sử response trả về success = true
-//                val dbData = response.data // data là List<UserAddress>
-//
-//                val sortedDbData = if (currentSelectedId != null) {
-//                    dbData.sortedByDescending { it.AddressID == currentSelectedId }
-//                } else {
-//                    dbData
-//                }
-//
-//                addressList.clear()
-//                addressList.addAll(sortedDbData)
-//
-//                selectedId = if (currentSelectedId != null && currentSelectedId != -1) {
-//                    currentSelectedId
-//                } else {
-//                    dbData.find { it.IsDefault == 1 }?.AddressID ?: -1
-//                }
-//            } else {
-//                Toast.makeText(context, "Lỗi tải địa chỉ: ${response.message}", Toast.LENGTH_SHORT).show()
-//            }
+
             val mockData = listOf(
                 UserAddress(
                     AddressID = 1,
