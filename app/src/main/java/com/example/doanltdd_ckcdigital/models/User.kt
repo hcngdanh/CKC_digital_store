@@ -49,3 +49,13 @@ data class SimpleResponse(
     val success: Boolean,
     val message: String
 )
+
+data class Voucher(
+    val VoucherID: Int,
+    val VoucherCode: String,
+    val Description: String,
+    val DiscountAmount: Double,
+    val MinOrderValue: Double,
+    val Quantity: Int,
+    val ExpirationDate: String?
+)
