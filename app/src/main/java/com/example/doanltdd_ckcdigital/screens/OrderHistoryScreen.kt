@@ -2,6 +2,7 @@ package com.example.doanltdd_ckcdigital.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,135 +14,122 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.doanltdd_ckcdigital.models.OrderHistoryModel
+import com.example.doanltdd_ckcdigital.services.RetrofitClient
 import java.text.NumberFormat
 import java.util.Locale
 
-val HistoryBgLight = Color(0xFFF5F5F5)
-val HistoryCardLight = Color(0xFFFFFFFF)
-val HistoryTextBlack = Color(0xFF212121)
-val HistoryTextGrey = Color(0xFF757575)
-val HistoryDividerColor = Color(0xFFEEEEEE)
-val HistoryBrandOrange = Color(0xFFFF5722)
+// Màu sắc theo giao diện mẫu
+val OrangeColor = Color(0xFFFF5722)
+val GreenColor = Color(0xFF4CAF50)
+val BlueColor = Color(0xFF2196F3)
+val GrayText = Color(0xFF757575)
 
-enum class HistoryStatus(val label: String, val color: Color) {
-    ALL("Tất cả", Color.Black),
-    PENDING("Chờ xác nhận", Color(0xFFFF9800)),
-    SHIPPING("Đang giao", Color(0xFF2196F3)),
-    COMPLETED("Hoàn thành", Color(0xFF4CAF50)),
-    CANCELLED("Đã hủy", Color(0xFFE91E63))
+enum class HistoryStatus(val label: String, val dbStatusList: List<String>) {
+    ALL("Tất cả", emptyList()),
+    PENDING("Chờ xác nhận", listOf("Chờ xử lý", "Chờ lấy hàng")),
+    SHIPPING("Đang giao", listOf("Đang giao hàng")),
+    COMPLETED("Hoàn thành", listOf("Hoàn thành")),
+    CANCELLED("Đã hủy", listOf("Đã hủy"))
 }
-
-data class OrderHistoryItem(
-    val orderId: String,
-    val shopName: String,
-    val productName: String,
-    val productImageUrl: String,
-    val quantity: Int,
-    val totalPrice: Long,
-    val status: HistoryStatus
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderHistoryScreen(
     userId: Int,
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit,
+    onOrderClick: (Int) -> Unit // Callback để chuyển sang trang chi tiết
 ) {
-    val sampleOrders = remember {
-        listOf(
-            OrderHistoryItem("ORD-001", "Sony Official Store", "Sony Alpha A7 IV Body Only", "https://res.cloudinary.com/dczhi464d/image/upload/v1767096256/shoplogo_new_fi45zg.png", 1, 59990000, HistoryStatus.PENDING),
-            OrderHistoryItem("ORD-002", "CKC Digital", "Fujifilm X-T5 Kit 18-55mm", "https://res.cloudinary.com/dczhi464d/image/upload/v1767096256/shoplogo_new_fi45zg.png", 1, 43500000, HistoryStatus.SHIPPING),
-            OrderHistoryItem("ORD-003", "Canon Camera", "Canon EOS R6 Mark II", "https://res.cloudinary.com/dczhi464d/image/upload/v1767096256/shoplogo_new_fi45zg.png", 1, 67000000, HistoryStatus.COMPLETED),
-            OrderHistoryItem("ORD-004", "Phụ Kiện Máy Ảnh", "Tripod Benro SystemGo", "https://res.cloudinary.com/dczhi464d/image/upload/v1767096256/shoplogo_new_fi45zg.png", 2, 2500000, HistoryStatus.CANCELLED),
-            OrderHistoryItem("ORD-005", "Sony Official Store", "Lens Sony FE 24-70mm GM II", "https://res.cloudinary.com/dczhi464d/image/upload/v1767096256/shoplogo_new_fi45zg.png", 1, 48990000, HistoryStatus.COMPLETED)
-        )
+    var orderList by remember { mutableStateOf<List<OrderHistoryModel>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var selectedTab by remember { mutableStateOf(HistoryStatus.ALL) }
+
+    // Gọi API lấy danh sách đơn hàng
+    LaunchedEffect(userId) {
+        try {
+            isLoading = true
+            val response = RetrofitClient.apiService.getUserOrders(userId)
+            if (response.success) {
+                orderList = response.data
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            isLoading = false
+        }
     }
 
-    var selectedStatus by remember { mutableStateOf(HistoryStatus.ALL) }
-
-    val filteredOrders = remember(selectedStatus, sampleOrders) {
-        if (selectedStatus == HistoryStatus.ALL) sampleOrders
-        else sampleOrders.filter { it.status == selectedStatus }
+    val filteredOrders = remember(selectedTab, orderList) {
+        if (selectedTab == HistoryStatus.ALL) orderList
+        else orderList.filter { selectedTab.dbStatusList.contains(it.OrderStatus) }
     }
 
     Scaffold(
-        containerColor = HistoryBgLight,
+        containerColor = Color(0xFFF5F5F5),
         topBar = {
             CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        "Lịch sử mua hàng",
-                        color = HistoryTextBlack,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                },
+                title = { Text("Lịch sử mua hàng", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = HistoryTextBlack)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = HistoryCardLight
-                )
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
             )
         }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
+    ) { padding ->
+        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+            // Thanh Tab trạng thái
             ScrollableTabRow(
-                selectedTabIndex = HistoryStatus.values().indexOf(selectedStatus),
-                containerColor = HistoryCardLight,
-                contentColor = HistoryBrandOrange,
+                selectedTabIndex = HistoryStatus.values().indexOf(selectedTab),
+                containerColor = Color.White,
+                contentColor = OrangeColor,
                 edgePadding = 0.dp,
                 indicator = { tabPositions ->
                     TabRowDefaults.PrimaryIndicator(
-                        modifier = Modifier.tabIndicatorOffset(tabPositions[HistoryStatus.values().indexOf(selectedStatus)]),
-                        color = HistoryBrandOrange
+                        modifier = Modifier.tabIndicatorOffset(tabPositions[HistoryStatus.values().indexOf(selectedTab)]),
+                        color = OrangeColor
                     )
-                },
-                divider = { HorizontalDivider(color = HistoryDividerColor) }
+                }
             ) {
                 HistoryStatus.values().forEach { status ->
                     Tab(
-                        selected = selectedStatus == status,
-                        onClick = { selectedStatus = status },
+                        selected = selectedTab == status,
+                        onClick = { selectedTab = status },
                         text = {
                             Text(
                                 text = status.label,
                                 fontSize = 14.sp,
-                                fontWeight = if (selectedStatus == status) FontWeight.Bold else FontWeight.Normal,
-                                color = if (selectedStatus == status) HistoryBrandOrange else HistoryTextGrey
+                                fontWeight = if (selectedTab == status) FontWeight.Bold else FontWeight.Normal,
+                                color = if (selectedTab == status) OrangeColor else GrayText
                             )
                         }
                     )
                 }
             }
 
-            if (filteredOrders.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Chưa có đơn hàng nào", color = HistoryTextGrey)
+            if (isLoading) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = OrangeColor)
+                }
+            } else if (filteredOrders.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Chưa có đơn hàng nào", color = GrayText)
                 }
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxSize()
+                    contentPadding = PaddingValues(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(filteredOrders) { order ->
-                        OrderHistoryCard(order)
+                        OrderHistoryItemCard(order, onClick = { onOrderClick(order.OrderID) })
                     }
                 }
             }
@@ -150,159 +138,101 @@ fun OrderHistoryScreen(
 }
 
 @Composable
-fun OrderHistoryCard(order: OrderHistoryItem) {
+fun OrderHistoryItemCard(order: OrderHistoryModel, onClick: () -> Unit) {
+    val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
+
+    // Màu trạng thái
+    val statusColor = when (order.OrderStatus) {
+        "Hoàn thành" -> GreenColor
+        "Đã hủy" -> Color.Red
+        "Đang giao hàng" -> BlueColor
+        else -> OrangeColor
+    }
+
     Card(
-        colors = CardDefaults.cardColors(containerColor = HistoryCardLight),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(2.dp),
         shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().clickable { onClick() } // Bấm vào Card thì gọi onClick
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(Modifier.padding(12.dp)) {
+            // Header: Mã đơn hàng & Trạng thái
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Mã đơn hàng: ${order.orderId}",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = HistoryTextBlack
-                )
-
-                Text(
-                    text = order.status.label,
-                    color = order.status.color,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                Text("Mã đơn hàng: #${order.OrderID}", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(order.OrderStatus, color = statusColor, fontSize = 13.sp, fontWeight = FontWeight.Medium)
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = HistoryDividerColor)
+            HorizontalDivider(Modifier.padding(vertical = 12.dp), color = Color(0xFFEEEEEE))
 
-            Row(modifier = Modifier.fillMaxWidth()) {
+            // Body: Sản phẩm đại diện
+            Row {
                 AsyncImage(
-                    model = order.productImageUrl,
+                    model = order.ThumbnailURL ?: "",
                     contentDescription = null,
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(Color.LightGray),
-                    contentScale = ContentScale.Crop
+                    modifier = Modifier.size(80.dp).background(Color(0xFFFAFAFA)),
+                    contentScale = ContentScale.Fit
                 )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = order.productName,
-                        fontSize = 15.sp,
-                        color = HistoryTextBlack,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "x${order.quantity}",
-                        fontSize = 13.sp,
-                        color = HistoryTextGrey
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(order.ProductName ?: "Sản phẩm", maxLines = 1, overflow = TextOverflow.Ellipsis, fontSize = 15.sp)
+                    Spacer(Modifier.height(4.dp))
+                    Text("x${order.TotalQuantity}", color = GrayText, fontSize = 13.sp)
+                    Spacer(Modifier.height(8.dp))
+                    // Tag "7 ngày trả hàng" giống hình mẫu
                     Surface(
-                        border = BorderStroke(1.dp, HistoryBrandOrange),
-                        color = Color.Transparent,
-                        shape = RoundedCornerShape(2.dp)
+                        border = BorderStroke(1.dp, OrangeColor),
+                        shape = RoundedCornerShape(2.dp),
+                        color = Color.Transparent
                     ) {
                         Text(
-                            text = "7 ngày trả hàng",
-                            color = HistoryBrandOrange,
+                            "7 ngày trả hàng",
+                            color = OrangeColor,
                             fontSize = 10.sp,
-                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
                         )
                     }
                 }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = HistoryDividerColor)
+            HorizontalDivider(Modifier.padding(vertical = 12.dp), color = Color(0xFFEEEEEE))
 
+            // Footer: Tổng tiền & Nút bấm
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "${order.quantity} sản phẩm",
-                    color = HistoryTextGrey,
-                    fontSize = 12.sp
-                )
+                Text("${order.TotalQuantity} sản phẩm", fontSize = 12.sp, color = GrayText)
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "Thành tiền: ", fontSize = 14.sp, color = HistoryTextBlack)
+                    Text("Thành tiền: ", fontSize = 14.sp)
                     Text(
-                        text = formatCurrencyHistory(order.totalPrice),
-                        fontSize = 16.sp,
+                        formatter.format(order.TotalAmount),
+                        color = OrangeColor,
                         fontWeight = FontWeight.Bold,
-                        color = HistoryBrandOrange
+                        fontSize = 16.sp
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                when (order.status) {
-                    HistoryStatus.COMPLETED -> {
-                        OutlinedButton(
-                            onClick = { },
-                            shape = RoundedCornerShape(4.dp),
-                            border = BorderStroke(1.dp, HistoryTextGrey),
-                            modifier = Modifier.height(36.dp)
-                        ) {
-                            Text("Đánh giá", color = HistoryTextBlack, fontSize = 12.sp)
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Button(
-                            onClick = { },
-                            shape = RoundedCornerShape(4.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = HistoryBrandOrange),
-                            modifier = Modifier.height(36.dp)
-                        ) {
-                            Text("Mua lại", color = Color.White, fontSize = 12.sp)
-                        }
-                    }
-                    HistoryStatus.CANCELLED -> {
-                        Button(
-                            onClick = { },
-                            shape = RoundedCornerShape(4.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = HistoryBrandOrange),
-                            modifier = Modifier.height(36.dp)
-                        ) {
-                            Text("Mua lại", color = Color.White, fontSize = 12.sp)
-                        }
-                    }
-                    else -> {
-                        OutlinedButton(
-                            onClick = { },
-                            shape = RoundedCornerShape(4.dp),
-                            border = BorderStroke(1.dp, HistoryTextGrey),
-                            modifier = Modifier.height(36.dp)
-                        ) {
-                            Text("Liên hệ Shop", color = HistoryTextBlack, fontSize = 12.sp)
-                        }
-                    }
+            // Nút bấm hành động (Canh phải)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                OutlinedButton(
+                    onClick = { /* Chat shop */ },
+                    shape = RoundedCornerShape(4.dp),
+                    modifier = Modifier.height(36.dp),
+                    border = BorderStroke(1.dp, GrayText),
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                ) {
+                    Text("Liên hệ Shop", color = Color.Black, fontSize = 12.sp)
                 }
             }
         }
     }
-}
-
-fun formatCurrencyHistory(amount: Long): String {
-    val format = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
-    return format.format(amount)
-}
-
-@Preview
-@Composable
-fun PreviewOrderHistory() {
-    OrderHistoryScreen(userId = 1)
 }

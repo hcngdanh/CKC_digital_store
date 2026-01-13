@@ -1,17 +1,21 @@
 package com.example.doanltdd_ckcdigital.utils
 
 import android.content.Context
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.core.content.edit
 import com.example.doanltdd_ckcdigital.models.UserModel
 import com.google.gson.Gson
-import androidx.core.content.edit
-
 
 class SessionManager private constructor(context: Context) {
 
     private val prefs = context.getSharedPreferences("CKC_SESSION", Context.MODE_PRIVATE)
     private val gson = Gson()
 
-    var currentUser: UserModel? = null
+    // --- SỬA ĐỔI QUAN TRỌNG ---
+    // Chuyển currentUser thành State để AppNavGraph có thể "lắng nghe" thay đổi
+    var currentUser by mutableStateOf<UserModel?>(null)
         private set
 
     init {
@@ -19,13 +23,13 @@ class SessionManager private constructor(context: Context) {
     }
 
     fun saveUserSession(user: UserModel) {
+        // Cập nhật State -> App tự động chạy lại LaunchedEffect lấy giỏ hàng
         currentUser = user
 
         val userJson = gson.toJson(user)
-        prefs.edit().apply {
+        prefs.edit {
             putString("user_data", userJson)
             putBoolean("is_logged_in", true)
-            apply()
         }
     }
 
@@ -56,7 +60,7 @@ class SessionManager private constructor(context: Context) {
         prefs.edit(commit = true) {
             clear()
         }
-
+        // Cập nhật về null -> App tự động xóa giỏ hàng hiển thị
         currentUser = null
     }
 

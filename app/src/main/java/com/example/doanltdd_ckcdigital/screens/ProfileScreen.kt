@@ -23,7 +23,7 @@ import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material.icons.outlined.StarRate
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.* // Import thêm các hàm state
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.doanltdd_ckcdigital.models.UserModel
+import com.example.doanltdd_ckcdigital.services.RetrofitClient // Import RetrofitClient
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,6 +49,25 @@ fun ProfileScreen(
     onEditProfileClick: () -> Unit,
     onPasswordChangeClick: () -> Unit
 ) {
+    // --- STATE MỚI: Lưu trữ số lượng đơn hàng theo trạng thái ---
+    var orderStats by remember { mutableStateOf(mapOf<String, Int>()) }
+
+    // --- LOGIC MỚI: Tải đơn hàng và đếm số lượng ---
+    LaunchedEffect(user) {
+        if (user != null) {
+            try {
+                val response = RetrofitClient.apiService.getUserOrders(user.UserID)
+                if (response.success) {
+                    // Gom nhóm theo OrderStatus và đếm số lượng
+                    // Ví dụ: {"Chờ xử lý": 2, "Đang giao hàng": 1, ...}
+                    orderStats = response.data.groupingBy { it.OrderStatus }.eachCount()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             Surface(color = Color.Black) {
@@ -84,6 +104,7 @@ fun ProfileScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
+            // Phần Header Avatar (Giữ nguyên)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -103,7 +124,7 @@ fun ProfileScreen(
                             model = user.AvatarURL,
                             contentDescription = "User Avatar",
                             modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop // Cắt ảnh cho vừa vòng tròn
+                            contentScale = ContentScale.Crop
                         )
                     } else {
                         Icon(
@@ -132,6 +153,7 @@ fun ProfileScreen(
                 }
             }
 
+            // Phần Menu (Body)
             Surface(
                 modifier = Modifier.fillMaxSize(),
                 color = Color(0xFFF8F9FA),
@@ -160,7 +182,11 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    OrderSection(onHistoryClick = onOrderHistoryClick)
+                    // --- CẬP NHẬT: Truyền biến orderStats vào OrderSection ---
+                    OrderSection(
+                        orderStats = orderStats,
+                        onHistoryClick = onOrderHistoryClick
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -177,7 +203,7 @@ fun ProfileScreen(
                         icon = Icons.Default.Favorite,
                         title = "Danh sách yêu thích",
                         iconColor = Color(0xFFE91E63),
-                        onClick = {  }
+                        onClick = { }
                     )
 
                     Spacer(modifier = Modifier.height(40.dp))
@@ -243,7 +269,10 @@ fun ProfileMenuItem(
 }
 
 @Composable
-fun OrderSection(onHistoryClick: () -> Unit) {
+fun OrderSection(
+    orderStats: Map<String, Int>, // Nhận map thống kê
+    onHistoryClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -271,19 +300,47 @@ fun OrderSection(onHistoryClick: () -> Unit) {
                     imageVector = Icons.AutoMirrored.Outlined.List,
                     contentDescription = null,
                     tint = Color.Gray,
-                    modifier = Modifier.size(16.dp).padding(start = 4.dp)
+                    modifier = Modifier
+                        .size(16.dp)
+                        .padding(start = 4.dp)
                 )
             }
         }
         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp, color = Color(0xFFF0F0F0))
+
+        // --- LOGIC MAP KEY TỪ DATABASE SANG UI ---
+        // Chú ý: Key map["..."] phải khớp chính xác với chuỗi OrderStatus trong Database
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            OrderStatusItem(Icons.Outlined.Assignment, "Chờ xác nhận") { onHistoryClick() }
-            OrderStatusItem(Icons.Outlined.Inventory2, "Chờ lấy hàng") { onHistoryClick() }
-            OrderStatusItem(Icons.Outlined.LocalShipping, "Chờ giao hàng", 1) { onHistoryClick() }
-            OrderStatusItem(Icons.Outlined.StarRate, "Đánh giá", 1) { onHistoryClick() }
+            OrderStatusItem(
+                icon = Icons.Outlined.Assignment,
+                label = "Chờ xác nhận",
+                // DB Status thường là "Chờ xử lý"
+                badgeCount = orderStats["Chờ xử lý"] ?: 0
+            ) { onHistoryClick() }
+
+            OrderStatusItem(
+                icon = Icons.Outlined.Inventory2,
+                label = "Chờ lấy hàng",
+                // DB Status thường là "Chờ lấy hàng"
+                badgeCount = orderStats["Chờ lấy hàng"] ?: 0
+            ) { onHistoryClick() }
+
+            OrderStatusItem(
+                icon = Icons.Outlined.LocalShipping,
+                label = "Chờ giao hàng",
+                // DB Status thường là "Đang giao hàng"
+                badgeCount = orderStats["Đang giao hàng"] ?: 0
+            ) { onHistoryClick() }
+
+            OrderStatusItem(
+                icon = Icons.Outlined.StarRate,
+                label = "Đánh giá",
+                // Thường là đơn "Hoàn thành" sẽ cần đánh giá
+                badgeCount = orderStats["Hoàn thành"] ?: 0
+            ) { onHistoryClick() }
         }
     }
 }
@@ -303,6 +360,7 @@ fun OrderStatusItem(
     ) {
         Box(contentAlignment = Alignment.TopEnd) {
             Icon(icon, null, modifier = Modifier.size(28.dp), tint = Color(0xFF555555))
+            // Chỉ hiển thị Badge đỏ khi số lượng > 0
             if (badgeCount > 0) {
                 Box(
                     modifier = Modifier
@@ -313,7 +371,12 @@ fun OrderStatusItem(
                         .border(1.dp, Color.White, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(badgeCount.toString(), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = if (badgeCount > 99) "99+" else badgeCount.toString(),
+                        color = Color.White,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

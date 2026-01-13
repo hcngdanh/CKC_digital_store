@@ -1,13 +1,12 @@
 package com.example.doanltdd_ckcdigital.models
+import com.google.gson.annotations.SerializedName
 
-import com.example.doanltdd_ckcdigital.screens.HistoryStatus
-
-data class OrderHistoryItem(
-    val orderId: String,
-    val shopName: String,
-    val productName: String,
-    val productImageUrl: String,
-    val quantity: Int,
-    val totalPrice: Long,
-    val status: HistoryStatus
+data class OrderHistoryModel(
+    val OrderID: Int,
+    val OrderDate: String,
+    val TotalAmount: Double,
+    val OrderStatus: String,
+    val ProductName: String?,
+    @SerializedName("ThumbnailURL") val ThumbnailURL: String?,
+    val TotalQuantity: Int
 )

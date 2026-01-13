@@ -5,11 +5,15 @@ import com.example.doanltdd_ckcdigital.models.AuthResponse
 import com.example.doanltdd_ckcdigital.models.CartItemResponse
 import com.example.doanltdd_ckcdigital.models.CategoryModel
 import com.example.doanltdd_ckcdigital.models.LoginRequest
+import com.example.doanltdd_ckcdigital.models.OrderDetailResponse
+import com.example.doanltdd_ckcdigital.models.OrderHistoryModel
+import com.example.doanltdd_ckcdigital.models.OrderRequest
 import com.example.doanltdd_ckcdigital.models.ProductAddToCart
 import com.example.doanltdd_ckcdigital.models.ProductModel
+import com.example.doanltdd_ckcdigital.models.PromotionModel
 import com.example.doanltdd_ckcdigital.models.RegisterRequest
 import com.example.doanltdd_ckcdigital.models.Review
-import com.example.doanltdd_ckcdigital.models.ReviewResponse
+import com.example.doanltdd_ckcdigital.models.ShippingMethod
 import com.example.doanltdd_ckcdigital.models.SimpleResponse
 import com.example.doanltdd_ckcdigital.models.UserAddress
 import com.example.doanltdd_ckcdigital.models.UserModel
@@ -91,11 +95,25 @@ interface ApiService {
         @Body request: Map<String, String>
     ): SimpleResponse
 
+    @GET("api/promotions")
+    suspend fun getPromotions(): ApiResponse<List<PromotionModel>>
+
+    @GET("api/shipping-methods")
+    suspend fun getShippingMethods(): ApiResponse<List<ShippingMethod>>
+
+    @POST("api/orders")
+    suspend fun createOrder(@Body request: OrderRequest): SimpleResponse
+
+    @GET("api/orders/user/{userId}")
+    suspend fun getUserOrders(@Path("userId") userId: Int): ApiResponse<List<OrderHistoryModel>>
+
+    @GET("api/orders/detail/{orderId}")
+    suspend fun getOrderDetail(@Path("orderId") orderId: Int): ApiResponse<OrderDetailResponse>
 
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "https://server-api-doan.onrender.com"
+    private const val BASE_URL = "http://10.0.2.2:3000/"
 
     val apiService: ApiService by lazy {
         Retrofit.Builder()

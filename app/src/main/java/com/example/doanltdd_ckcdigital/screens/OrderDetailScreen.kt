@@ -1,249 +1,186 @@
 package com.example.doanltdd_ckcdigital.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.doanltdd_ckcdigital.models.OrderDetailResponse
+import com.example.doanltdd_ckcdigital.services.RetrofitClient
 import java.text.NumberFormat
 import java.util.Locale
 
-val OrangeColor = Color(0xFFEF6C00)
-val CardBackgroundColor = Color(0xFFF5F5F5)
-
-data class CameraItem(
-    val name: String,
-    val specs: String,
-    val price: Double,
-    val quantity: Int,
-    val imageUrl: String
-)
-
-data class OrderDetail(
-    val id: String,
-    val status: String,
-    val date: String,
-    val items: List<CameraItem>,
-    val shippingFee: Double,
-    val total: Double
-)
-
-@Composable
-fun OrderDetailScreen() {
-    val sampleOrder = OrderDetail(
-        id = "#ORD-2025-8899",
-        status = "Đang vận chuyển",
-        date = "02/01/2026",
-        items = listOf(
-            CameraItem(
-                "Sony Alpha A7 IV",
-                "Body Only - 33MP",
-                59990000.0,
-                1,
-                "https://res.cloudinary.com/dczhi464d/image/upload/v1767096256/shoplogo_new_fi45zg.png"
-            ),
-            CameraItem(
-                "Lens FE 24-70mm GM",
-                "f/2.8 GM II",
-                48990000.0,
-                1,
-                "https://res.cloudinary.com/dczhi464d/image/upload/v1767096256/shoplogo_new_fi45zg.png"
-            )
-        ),
-        shippingFee = 50000.0,
-        total = 109030000.0
-    )
-
-    Scaffold(
-        containerColor = Color.White,
-        topBar = {
-            OrderDetailTopBar()
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-                .padding(paddingValues)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                OrderStatusSection(sampleOrder)
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Text(
-                    text = "Danh sách sản phẩm",
-                    color = Color.Black,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-
-                sampleOrder.items.forEach { item ->
-                    ProductItemRow(item)
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-
-                Divider(color = Color.LightGray, thickness = 1.dp, modifier = Modifier.padding(vertical = 16.dp))
-                ShippingInfoSection()
-                Divider(color = Color.LightGray, thickness = 1.dp, modifier = Modifier.padding(vertical = 16.dp))
-                PriceSummarySection(sampleOrder)
-
-                Spacer(modifier = Modifier.height(30.dp))
-
-                Button(
-                    onClick = { /* */ },
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = OrangeColor),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("Mua lại đơn này", color = Color.White, fontWeight = FontWeight.Bold)
-                }
-                Spacer(modifier = Modifier.height(30.dp))
-            }
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OrderDetailTopBar() {
-    TopAppBar(
-        title = { Text("Chi tiết đơn hàng", color = Color.Black, fontWeight = FontWeight.Bold) },
-        navigationIcon = {
-            IconButton(onClick = { /* Back */ }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.Black)
+fun OrderDetailScreen(
+    orderId: Int,
+    onBackClick: () -> Unit
+) {
+    var orderData by remember { mutableStateOf<OrderDetailResponse?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+    var hasError by remember { mutableStateOf(false) } // Thêm biến check lỗi
+    val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
+
+    // Load chi tiết đơn hàng
+    LaunchedEffect(orderId) {
+        try {
+            isLoading = true
+            hasError = false
+            Log.d("OrderDetail", "Fetching order ID: $orderId")
+            val response = RetrofitClient.apiService.getOrderDetail(orderId)
+
+            if (response.success && response.data != null) {
+                orderData = response.data
+            } else {
+                Log.e("OrderDetail", "Response failed or data is null")
+                hasError = true
             }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-    )
-}
-
-@Composable
-fun OrderStatusSection(order: OrderDetail) {
-    Column {
-        Text(text = "Mã đơn: ${order.id}", color = Color.Gray, fontSize = 14.sp)
-        Spacer(modifier = Modifier.height(4.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = order.status, color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text = "• ${order.date}", color = Color.Gray, fontSize = 14.sp)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            hasError = true
+        } finally {
+            isLoading = false
         }
     }
-}
 
-@Composable
-fun ProductItemRow(item: CameraItem) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(CardBackgroundColor, shape = RoundedCornerShape(8.dp))
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        AsyncImage(
-            model = item.imageUrl,
-            contentDescription = item.name,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(60.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color.LightGray)
-        )
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = item.name, color = Color.Black, fontWeight = FontWeight.SemiBold, maxLines = 1)
-            Text(text = item.specs, color = Color.Gray, fontSize = 12.sp)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "x${item.quantity}", color = Color.Black, fontSize = 12.sp)
-        }
-
-        Text(
-            text = formatCurrency(item.price),
-            color = OrangeColor,
-            fontWeight = FontWeight.Bold,
-            fontSize = 14.sp
-        )
-    }
-}
-
-@Composable
-fun ShippingInfoSection() {
-    Column {
-        Text("Địa chỉ nhận hàng", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(verticalAlignment = Alignment.Top) {
-            Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Column {
-                Text("Trần Tuấn Cường", color = Color.Black, fontWeight = FontWeight.Medium)
-                Text("0909 xxx xxx", color = Color.Gray, fontSize = 14.sp)
-                Text("123 Đường ABC, Quận 1, TP.HCM", color = Color.Gray, fontSize = 14.sp)
-            }
-        }
-    }
-}
-
-@Composable
-fun PriceSummarySection(order: OrderDetail) {
-    Column {
-        PriceRow("Tạm tính", order.items.sumOf { it.price * it.quantity })
-        PriceRow("Phí vận chuyển", order.shippingFee)
-        Divider(modifier = Modifier.padding(vertical = 8.dp), color = Color.LightGray)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text("Tổng cộng", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Text(
-                formatCurrency(order.total),
-                color = OrangeColor,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Thông tin đơn hàng", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
             )
+        },
+        containerColor = Color(0xFFF5F5F5)
+    ) { padding ->
+        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+            if (isLoading) {
+                // 1. Loading
+                CircularProgressIndicator(
+                    color = Color(0xFFFF5722),
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            } else if (orderData != null && !hasError) {
+                // 2. Data OK -> Hiển thị nội dung
+                val info = orderData!!.orderInfo
+                val items = orderData!!.orderItems
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // 1. Trạng thái đơn hàng
+                    item {
+                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E1))) {
+                            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text("Trạng thái: ", fontSize = 15.sp)
+                                Text(info.OrderStatus, color = Color(0xFFFF5722), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            }
+                        }
+                    }
+
+                    // 2. Địa chỉ nhận hàng
+                    item {
+                        Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                            Row(Modifier.padding(16.dp)) {
+                                Icon(Icons.Default.LocationOn, null, tint = Color(0xFFFF5722))
+                                Spacer(Modifier.width(12.dp))
+                                Column {
+                                    Text("Địa chỉ nhận hàng", fontWeight = FontWeight.Bold)
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(info.ShipAddress, fontSize = 14.sp, color = Color.DarkGray)
+                                }
+                            }
+                        }
+                    }
+
+                    // 3. Danh sách sản phẩm
+                    item { Text("Danh sách sản phẩm", fontWeight = FontWeight.Bold) }
+
+                    items(items) { item ->
+                        Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                            Row(Modifier.padding(12.dp)) {
+                                AsyncImage(
+                                    model = item.ThumbnailURL,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(70.dp).background(Color(0xFFFAFAFA)),
+                                    contentScale = ContentScale.Fit
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(item.ProductName, fontWeight = FontWeight.Medium, maxLines = 2, fontSize = 14.sp)
+                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                        Text("x${item.Quantity}", color = Color.Gray, fontSize = 13.sp)
+                                        Text(formatter.format(item.UnitPrice), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // 4. Chi tiết thanh toán
+                    item {
+                        Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                            Column(Modifier.padding(16.dp)) {
+                                Text("Chi tiết thanh toán", fontWeight = FontWeight.Bold)
+                                Spacer(Modifier.height(8.dp))
+                                RowInfo("Phương thức thanh toán", info.PaymentMethod ?: "COD")
+                                RowInfo("Đơn vị vận chuyển", info.ShippingMethod ?: "Tiêu chuẩn")
+                                HorizontalDivider(Modifier.padding(vertical = 8.dp), color = Color(0xFFEEEEEE))
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text("Thành tiền", fontWeight = FontWeight.Bold)
+                                    Text(formatter.format(info.TotalAmount), color = Color(0xFFFF5722), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                // 3. Lỗi / Null -> Hiển thị Error UI
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(text = "Không tìm thấy thông tin đơn hàng!", color = Color.Gray)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = onBackClick, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5722))) {
+                        Text("Quay lại")
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-fun PriceRow(label: String, amount: Double) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
+fun RowInfo(label: String, value: String) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, color = Color.Gray, fontSize = 14.sp)
-        Text(formatCurrency(amount), color = Color.Black, fontSize = 14.sp)
+        Text(value, fontSize = 14.sp)
     }
-}
-
-fun formatCurrency(amount: Double): String {
-    val format = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
-    return format.format(amount)
-}
-
-@Preview
-@Composable
-fun PreviewOrderDetail() {
-    OrderDetailScreen()
 }
