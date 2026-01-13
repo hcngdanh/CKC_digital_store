@@ -299,7 +299,9 @@ fun AppNavGraph() {
         composable("register") {
             RegisterScreen(
                 viewModel = authViewModel,
-                onRegisterSuccess = {},
+                onRegisterSuccess = {Toast.makeText(context, "Đăng ký thành công! Vui lòng đăng nhập.", Toast.LENGTH_LONG).show()
+                    navController.popBackStack()
+                },
                 onNavigateToLogin = { navController.popBackStack() },
                 onBack = { navController.popBackStack() }
             )
