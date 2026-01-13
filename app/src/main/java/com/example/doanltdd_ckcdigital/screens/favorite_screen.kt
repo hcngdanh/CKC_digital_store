@@ -49,7 +49,7 @@ fun FavoriteScreen(
         if (user != null) {
             try {
                 isLoading = true
-                val response = RetrofitClient.apiService.getFavoriteProducts(user.UserID)
+                val response = RetrofitClient.apiService.getWishlist(user.UserID)
                 if (response.success) {
                     favoriteList = response.data
                 }
@@ -103,7 +103,7 @@ fun FavoriteScreen(
                                 scope.launch {
                                     try {
                                         val request = mapOf("user_id" to user.UserID, "product_id" to product.ProductID)
-                                        RetrofitClient.apiService.toggleFavorite(request)
+                                        RetrofitClient.apiService.toggleWishlist(request)
                                     } catch (e: Exception) { e.printStackTrace() }
                                 }
                             }

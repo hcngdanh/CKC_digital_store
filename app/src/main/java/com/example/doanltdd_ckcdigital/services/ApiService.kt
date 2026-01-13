@@ -5,6 +5,7 @@ import com.example.doanltdd_ckcdigital.models.AuthResponse
 import com.example.doanltdd_ckcdigital.models.CartItemResponse
 import com.example.doanltdd_ckcdigital.models.CategoryModel
 import com.example.doanltdd_ckcdigital.models.LoginRequest
+import com.example.doanltdd_ckcdigital.models.Order
 import com.example.doanltdd_ckcdigital.models.OrderDetailResponse
 import com.example.doanltdd_ckcdigital.models.OrderHistoryModel
 import com.example.doanltdd_ckcdigital.models.OrderRequest
@@ -15,9 +16,11 @@ import com.example.doanltdd_ckcdigital.models.RegisterRequest
 import com.example.doanltdd_ckcdigital.models.Review
 import com.example.doanltdd_ckcdigital.models.ShippingMethod
 import com.example.doanltdd_ckcdigital.models.SimpleResponse
+import com.example.doanltdd_ckcdigital.models.ToggleWishlistResponse
 import com.example.doanltdd_ckcdigital.models.UserAddress
 import com.example.doanltdd_ckcdigital.models.UserModel
 import com.example.doanltdd_ckcdigital.models.Voucher
+import com.example.doanltdd_ckcdigital.modelsimport.DashboardStatsResponse
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -109,12 +112,6 @@ interface ApiService {
 
     @GET("api/orders/detail/{orderId}")
     suspend fun getOrderDetail(@Path("orderId") orderId: Int): ApiResponse<OrderDetailResponse>
-
-    @GET("api/admin/orders")
-    suspend fun getAllOrders(): ApiResponse<List<Order>>
-
-    @GET("api/admin/dashboard-stats")
-    suspend fun getDashboardStats(): ApiResponse<DashboardStatsResponse>
 
     @GET("api/admin/orders")
     suspend fun getAllOrders(): ApiResponse<List<Order>>
