@@ -36,9 +36,12 @@ data class CategoryModel(
     val ParentID: Int?
 )
 
+// CLASS QUAN TRỌNG: Đã thêm @SerializedName
 data class ProductAddToCart(
-    val userId:Int,
+    val userId: Int,
+
     @SerializedName("productId")
     val productID: Int,
+
     val quantity: Int
 )
