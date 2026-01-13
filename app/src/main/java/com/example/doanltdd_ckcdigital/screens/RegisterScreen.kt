@@ -60,6 +60,13 @@ fun RegisterScreen(
         unfocusedLabelColor = Color.Gray,
         cursorColor = Color(0xFFFFFFFF)
     )
+    val registerError = viewModel.registerError
+
+    LaunchedEffect(registerError) {
+        if (registerError.isNotEmpty()) {
+            Toast.makeText(context, registerError, Toast.LENGTH_LONG).show()
+        }
+    }
 
     fun handleRegister() {
         if (fullName.isBlank() || email.isBlank() || phoneNumber.isBlank() || password.isBlank()) {
@@ -70,13 +77,12 @@ fun RegisterScreen(
             Toast.makeText(context, "Mật khẩu xác nhận không khớp!", Toast.LENGTH_SHORT).show()
             return
         }
-
-        isLoading = true
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            viewModel.registerUser(RegisterRequest(fullName, email, phoneNumber, password), onSuccess= onNavigateToLogin )
-            Toast.makeText(context, "Đăng ký thành công!", Toast.LENGTH_SHORT).show()
-
-        }, 1500)
+        viewModel.registerUser(
+            RegisterRequest(fullName, email, phoneNumber, password),
+            onSuccess = {
+                onRegisterSuccess()
+            }
+        )
     }
 
     Scaffold(
