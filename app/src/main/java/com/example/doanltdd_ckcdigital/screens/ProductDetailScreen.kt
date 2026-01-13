@@ -1,11 +1,14 @@
 package com.example.doanltdd_ckcdigital.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.*
 import androidx.compose.foundation.shape.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,6 +16,7 @@ import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
@@ -20,6 +24,8 @@ import coil.compose.AsyncImage
 import com.example.doanltdd_ckcdigital.models.*
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
 import com.example.doanltdd_ckcdigital.utils.CartManager
+import com.example.doanltdd_ckcdigital.utils.SessionManager
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -32,23 +38,74 @@ fun ProductDetailScreen(
     onBuyNowClick: (ProductModel) -> Unit,
     onAddToCart: (ProductModel) -> Unit
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val sessionManager = remember { SessionManager.getInstance(context) }
+    val user = sessionManager.currentUser
+
     var product by remember { mutableStateOf<ProductModel?>(null) }
     var reviews by remember { mutableStateOf<List<Review>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+
+    // --- STATE YÊU THÍCH ---
+    var isFavorite by remember { mutableStateOf(false) }
+
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
 
+    // 1. Tải dữ liệu & Kiểm tra trạng thái yêu thích
     LaunchedEffect(productId) {
         try {
             isLoading = true
+            // Gọi API lấy chi tiết sản phẩm
             val productRes = RetrofitClient.apiService.getProductDetail(productId)
             if (productRes.success) product = productRes.data
 
+            // Gọi API lấy đánh giá
             val reviewRes = RetrofitClient.apiService.getProductReviews(productId)
             if (reviewRes.success) reviews = reviewRes.data
+
+            // Kiểm tra Wishlist (Nếu đã đăng nhập)
+            if (user != null) {
+                val favResponse = RetrofitClient.apiService.checkFavorite(user.UserID, productId)
+                if (favResponse.success) {
+                    isFavorite = favResponse.isFavorite
+                }
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
             isLoading = false
+        }
+    }
+
+    // Hàm xử lý Click tim
+    fun toggleFavorite() {
+        if (user == null) {
+            Toast.makeText(context, "Vui lòng đăng nhập để lưu yêu thích", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Cập nhật UI ngay lập tức (Optimistic Update)
+        isFavorite = !isFavorite
+
+        scope.launch {
+            try {
+                val request = mapOf("userId" to user.UserID, "productId" to productId)
+                val response = RetrofitClient.apiService.toggleWishlist(request)
+
+                if (response.success) {
+                    // Cập nhật lại state chuẩn từ server
+                    isFavorite = response.isFavorite
+                    val msg = if (response.isFavorite) "Đã thêm vào yêu thích" else "Đã xóa khỏi yêu thích"
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                } else {
+                    // Revert nếu server báo lỗi
+                    isFavorite = !isFavorite
+                }
+            } catch (e: Exception) {
+                isFavorite = !isFavorite // Revert nếu lỗi mạng
+                e.printStackTrace()
+            }
         }
     }
 
@@ -116,6 +173,7 @@ fun ProductDetailScreen(
                 }
                 val pagerState = rememberPagerState(pageCount = { images.size })
 
+                // Slider Ảnh
                 Box(Modifier.fillMaxWidth().background(Color.White).padding(vertical = 16.dp)) {
                     HorizontalPager(state = pagerState, modifier = Modifier.height(300.dp)) { page ->
                         AsyncImage(
@@ -133,8 +191,32 @@ fun ProductDetailScreen(
                     }
                 }
 
+                // Thông tin chính (Tên, Giá, Wishlist)
                 Column(Modifier.fillMaxWidth().background(Color.White).padding(16.dp)) {
-                    Text(product!!.ProductName, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    // --- SỬA ĐỔI: Dùng Row để đặt Tên và Nút tim trên cùng 1 hàng ---
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            text = product!!.ProductName,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f) // Để tên chiếm phần lớn không gian
+                        )
+
+                        // Nút Tim (Wishlist)
+                        IconButton(onClick = { toggleFavorite() }) {
+                            Icon(
+                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = "Yêu thích",
+                                tint = if (isFavorite) Color.Red else Color.Gray,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                    }
+
                     Spacer(Modifier.height(8.dp))
                     Text(formatter.format(product!!.Price), fontSize = 24.sp, color = Color(0xFFD32F2F), fontWeight = FontWeight.ExtraBold)
 

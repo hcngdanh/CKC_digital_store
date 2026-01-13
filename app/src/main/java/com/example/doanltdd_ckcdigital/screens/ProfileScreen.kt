@@ -47,7 +47,8 @@ fun ProfileScreen(
     onAddressManageClick: () -> Unit,
     onOrderHistoryClick: () -> Unit,
     onEditProfileClick: () -> Unit,
-    onPasswordChangeClick: () -> Unit
+    onPasswordChangeClick: () -> Unit,
+    onFavoriteClick: () -> Unit
 ) {
     // --- STATE MỚI: Lưu trữ số lượng đơn hàng theo trạng thái ---
     var orderStats by remember { mutableStateOf(mapOf<String, Int>()) }
@@ -203,7 +204,7 @@ fun ProfileScreen(
                         icon = Icons.Default.Favorite,
                         title = "Danh sách yêu thích",
                         iconColor = Color(0xFFE91E63),
-                        onClick = { }
+                        onClick = { onFavoriteClick() }
                     )
 
                     Spacer(modifier = Modifier.height(40.dp))

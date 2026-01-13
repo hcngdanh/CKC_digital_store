@@ -11,6 +11,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.doanltdd_ckcdigital.admin.AdminDashboardScreen
+import com.example.doanltdd_ckcdigital.admin.AdminOrderManagerScreen
 import com.example.doanltdd_ckcdigital.models.UserAddress
 import com.example.doanltdd_ckcdigital.screens.*
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
@@ -257,7 +259,8 @@ fun AppNavGraph() {
                     onAddressManageClick = { navController.navigate("address_list") },
                     onOrderHistoryClick = { navController.navigate("order_history") },
                     onEditProfileClick = { navController.navigate("edit_profile") },
-                    onPasswordChangeClick = { navController.navigate("change_password") }
+                    onPasswordChangeClick = { navController.navigate("change_password") },
+                    onFavoriteClick = { navController.navigate("wishlist") }
                 )
             } else {
                 navController.navigate("login")
@@ -347,5 +350,26 @@ fun AppNavGraph() {
         composable("forgot_password") {
             ForgotPasswordScreen(onBackClick = { navController.popBackStack() })
         }
+
+        composable("wishlist") {
+            val user = sessionManager.currentUser
+
+            // Kiểm tra đăng nhập
+            if (user != null) {
+                WishlistScreen(
+                    userId = user.UserID,
+                    onBackClick = { navController.popBackStack() },
+                    onProductClick = { productId ->
+                        // Khi bấm vào sản phẩm trong wishlist -> Chuyển sang màn hình chi tiết
+                        navController.navigate("product_detail/$productId")
+                    }
+                )
+            } else {
+                // Nếu chưa đăng nhập, chuyển về màn hình Login
+                navController.navigate("login")
+            }
+        }
+
+
     }
 }
