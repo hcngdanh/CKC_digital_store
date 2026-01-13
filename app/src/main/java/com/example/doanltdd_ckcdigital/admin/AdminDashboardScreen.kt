@@ -1,8 +1,10 @@
-package com.example.doanltdd_ckcdigital.admin
+package com.example.doanltdd_ckcdigital.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -10,12 +12,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Inventory
-import androidx.compose.material.icons.filled.People
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,12 +26,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.doanltdd_ckcdigital.models.UserModel
 
-// Model cho từng ô chức năng
 data class AdminFeature(
     val title: String,
+    val subtitle: String,
     val icon: ImageVector,
     val color: Color,
     val onClick: () -> Unit
+)
+
+data class DashboardStat(
+    val title: String,
+    val value: String,
+    val icon: ImageVector,
+    val color: Color
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,24 +46,36 @@ data class AdminFeature(
 fun AdminDashboardScreen(
     user: UserModel,
     onLogout: () -> Unit,
-    onNavigateToProductManager: () -> Unit,
-    onNavigateToOrderManager: () -> Unit,
-    onNavigateToUserManager: () -> Unit
+    onNavigateToOrderManager: () -> Unit
 ) {
     val features = listOf(
-        AdminFeature("Quản lý Sản phẩm", Icons.Default.Inventory, Color(0xFF4CAF50), onNavigateToProductManager),
-        AdminFeature("Quản lý Đơn hàng", Icons.Default.ShoppingCart, Color(0xFF2196F3), onNavigateToOrderManager),
-        AdminFeature("Quản lý Người dùng", Icons.Default.People, Color(0xFFFF9800), onNavigateToUserManager),
-        AdminFeature("Thống kê", Icons.Default.BarChart, Color(0xFF9C27B0)) { },
-        AdminFeature("Cài đặt", Icons.Default.Settings, Color(0xFF607D8B)) {  }
+        AdminFeature(
+            "Quản lý Đơn hàng",
+            "Cập nhật trạng thái đơn hàng",
+            Icons.Default.ShoppingCart,
+            Color(0xFF2196F3),
+            onNavigateToOrderManager
+        )
+    )
+
+    val stats = listOf(
+        DashboardStat("Doanh thu ngày", "12.500.000đ", Icons.Default.AttachMoney, Color(0xFF4CAF50)),
+        DashboardStat("Chờ xử lý", "5", Icons.Default.PendingActions, Color(0xFFFF9800)),
+        DashboardStat("Đã hoàn thành", "120", Icons.Default.CheckCircle, Color(0xFF2196F3))
     )
 
     Scaffold(
+        containerColor = Color(0xFFF8F9FA),
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Hệ Thống Quản Trị", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color(0xFF1A1A1A), // Màu tối cho Admin tạo cảm giác chuyên nghiệp
+            TopAppBar(
+                title = {
+                    Column {
+                        Text("Dashboard", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text("Quản trị viên", fontSize = 12.sp, fontWeight = FontWeight.Normal, color = Color.White.copy(alpha = 0.7f))
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF1E1E2E),
                     titleContentColor = Color.White,
                     actionIconContentColor = Color.White
                 ),
@@ -68,33 +85,44 @@ fun AdminDashboardScreen(
                     }
                 }
             )
-        },
-        containerColor = Color(0xFFF5F5F5)
+        }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(20.dp)
+                .padding(horizontal = 16.dp)
         ) {
-            AdminHeaderCard(user)
-
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                "Chức năng quản lý",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
             Spacer(modifier = Modifier.height(16.dp))
 
+            AdminHeaderCardUpdated(user)
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text("Tổng quan hôm nay", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(stats.size) { index ->
+                    StatCard(stats[index])
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text("Chức năng quản lý", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
+            Spacer(modifier = Modifier.height(12.dp))
+
             LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
+                columns = GridCells.Fixed(1),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 24.dp)
             ) {
                 items(features) { feature ->
-                    AdminFeatureCard(feature)
+                    AdminFeatureCardUpdated(feature)
                 }
             }
         }
@@ -102,89 +130,104 @@ fun AdminDashboardScreen(
 }
 
 @Composable
-fun AdminHeaderCard(user: UserModel) {
+fun AdminHeaderCardUpdated(user: UserModel) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(4.dp),
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp)
+        elevation = CardDefaults.cardElevation(2.dp),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(60.dp)
+                    .size(56.dp)
                     .clip(CircleShape)
-                    .background(Color.LightGray),
+                    .background(Color(0xFFE3F2FD))
+                    .border(2.dp, Color.White, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(40.dp),
-                    tint = Color.White
+                Text(
+                    text = user.FullName.take(1).uppercase(),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1565C0)
                 )
             }
-
             Spacer(modifier = Modifier.width(16.dp))
-
-            Column {
-                Text(text = "Xin chào,", fontSize = 14.sp, color = Color.Gray)
-                Text(
-                    text = user.FullName,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-                Surface(
-                    color = Color(0xFFFFEBEE),
-                    shape = RoundedCornerShape(4.dp),
-                    modifier = Modifier.padding(top = 4.dp)
-                ) {
-                    Text(
-                        text = "ADMINISTRATOR",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFD32F2F),
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                    )
-                }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = user.FullName, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
+                Text(text = user.Email, fontSize = 12.sp, color = Color.Gray)
+            }
+            Surface(color = Color(0xFFFFEBEE), shape = RoundedCornerShape(8.dp)) {
+                Text("ADMIN", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFFD32F2F), modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
             }
         }
     }
 }
 
 @Composable
-fun AdminFeatureCard(feature: AdminFeature) {
+fun StatCard(stat: DashboardStat) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(1.dp),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.width(150.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier.size(28.dp).clip(CircleShape).background(stat.color.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(imageVector = stat.icon, contentDescription = null, tint = stat.color, modifier = Modifier.size(16.dp))
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stat.title, fontSize = 12.sp, color = Color.Gray, maxLines = 1)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(stat.value, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+        }
+    }
+}
+
+@Composable
+fun AdminFeatureCardUpdated(feature: AdminFeature) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(2.dp),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(20.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .height(110.dp)
+            .height(100.dp)
             .clickable { feature.onClick() }
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = feature.icon,
-                contentDescription = null,
-                tint = feature.color,
-                modifier = Modifier.size(36.dp)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = feature.title,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 14.sp,
-                color = Color.Black
-            )
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(feature.color.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(imageVector = feature.icon, contentDescription = null, tint = feature.color, modifier = Modifier.size(32.dp))
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = feature.title, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1A1A1A))
+                Text(text = feature.subtitle, fontWeight = FontWeight.Medium, fontSize = 14.sp, color = Color.Gray)
+            }
+
+            Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null, tint = Color.LightGray)
         }
     }
 }

@@ -12,7 +12,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.doanltdd_ckcdigital.admin.AdminDashboardScreen
 import com.example.doanltdd_ckcdigital.screens.*
 import com.example.doanltdd_ckcdigital.utils.CartManager
 import com.example.doanltdd_ckcdigital.utils.SessionManager
@@ -248,14 +247,8 @@ fun AppNavGraph() {
                             popUpTo("admin_dashboard") { inclusive = true }
                         }
                     },
-                    onNavigateToProductManager = {
-                        Toast.makeText(context, "Quản lý sản phẩm", Toast.LENGTH_SHORT).show()
-                    },
                     onNavigateToOrderManager = {
                         Toast.makeText(context, "Quản lý đơn hàng", Toast.LENGTH_SHORT).show()
-                    },
-                    onNavigateToUserManager = {
-                        Toast.makeText(context, "Quản lý người dùng", Toast.LENGTH_SHORT).show()
                     }
                 )
             } else {
