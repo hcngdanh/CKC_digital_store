@@ -11,6 +11,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.doanltdd_ckcdigital.admin.AdminDashboardScreen
+import com.example.doanltdd_ckcdigital.admin.AdminOrderManagerScreen
 import com.example.doanltdd_ckcdigital.models.UserAddress
 import com.example.doanltdd_ckcdigital.screens.*
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
@@ -349,3 +351,4 @@ fun AppNavGraph() {
         }
     }
 }
+
