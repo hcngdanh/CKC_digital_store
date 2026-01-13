@@ -45,41 +45,25 @@ fun AddressListScreen(
     LaunchedEffect(userId) {
         try {
             isLoading = true
+            val dbData = RetrofitClient.apiService.getUserAddresses(userId)
 
-            val mockData = listOf(
-                UserAddress(
-                    AddressID = 1,
-                    UserID = userId,
-                    ReceiverName = "Trần Tuấn Cường",
-                    PhoneNumber = "0905123456",
-                    StreetAddress = "123 Đường Nguyễn Huệ, Phường Bến Nghé",
-                    City = "Quận 1, TP. HCM",
-                    IsDefault = 1
-                ),
-                UserAddress(
-                    AddressID = 2,
-                    UserID = userId,
-                    ReceiverName = "Văn phòng Shopee",
-                    PhoneNumber = "0287300123",
-                    StreetAddress = "Tòa nhà Saigon Centre, 65 Lê Lợi",
-                    City = "Quận 1, TP. HCM",
-                    IsDefault = 0
-                )
-            )
-            val sortedData = if (currentSelectedId != null) {
-                mockData.sortedByDescending { it.AddressID == currentSelectedId }
+            val sortedDbData = if (currentSelectedId != null) {
+                dbData.sortedByDescending { it.AddressID == currentSelectedId }
             } else {
-                mockData
+                dbData
             }
+
             addressList.clear()
-            addressList.addAll(sortedData)
+            addressList.addAll(sortedDbData)
+
             selectedId = if (currentSelectedId != null && currentSelectedId != -1) {
                 currentSelectedId
             } else {
-                mockData.find { it.IsDefault == 1 }?.AddressID ?: -1
+                dbData.find { it.IsDefault == 1 }?.AddressID ?: -1
             }
         } catch (e: Exception) {
-            Toast.makeText(context, "Lỗi kết nối: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Lỗi tải địa chỉ: ${e.message}", Toast.LENGTH_SHORT).show()
+            e.printStackTrace() 
         } finally {
             isLoading = false
         }
