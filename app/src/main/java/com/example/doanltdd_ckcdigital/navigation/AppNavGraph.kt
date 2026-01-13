@@ -155,10 +155,31 @@ fun AppNavGraph() {
                         Toast.makeText(context, "Chức năng đang phát triển", Toast.LENGTH_SHORT).show()
                     },
                     onPasswordChangeClick = {
-                        Toast.makeText(context, "Chức năng đang phát triển", Toast.LENGTH_SHORT).show()
+                        navController.navigate("change_password")
                     }
                 )
             } else {
+                navController.navigate("login")
+            }
+        }
+
+        composable("change_password") {
+            val user = sessionManager.currentUser
+            if (user != null) {
+                ChangePasswordScreen(
+                    userId = user.UserID,
+                    onBackClick = { navController.popBackStack() },
+                    onSuccess = {
+                        // Khi đổi mật khẩu thành công, thường sẽ bắt đăng nhập lại
+                        sessionManager.clearSession()
+                        Toast.makeText(context, "Vui lòng đăng nhập lại", Toast.LENGTH_SHORT).show()
+                        navController.navigate("login") {
+                            popUpTo("product_list") { inclusive = true }
+                        }
+                    }
+                )
+            } else {
+                // Nếu không tìm thấy user (lỗi session), quay về login
                 navController.navigate("login")
             }
         }
