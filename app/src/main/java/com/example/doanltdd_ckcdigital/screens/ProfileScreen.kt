@@ -103,7 +103,7 @@ fun ProfileScreen(
                             model = user.AvatarURL,
                             contentDescription = "User Avatar",
                             modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop // Cắt ảnh cho vừa vòng tròn
+                            contentScale = ContentScale.Crop
                         )
                     } else {
                         Icon(

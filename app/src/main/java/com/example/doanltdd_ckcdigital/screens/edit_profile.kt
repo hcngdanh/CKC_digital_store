@@ -108,7 +108,7 @@ fun EditProfileScreen(
                             val response = RetrofitClient.apiService.updateProfile(user?.UserID ?: -1, request)
 
                             if (response.success && response.data != null) {
-                                sessionManager.saveUserSession(response.data) // Cập nhật lại session mới
+                                sessionManager.saveUserSession(response.data)
                                 Toast.makeText(context, "Đã lưu thay đổi", Toast.LENGTH_SHORT).show()
                                 onSaveSuccess()
                             }

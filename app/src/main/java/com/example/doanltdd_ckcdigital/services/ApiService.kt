@@ -5,6 +5,7 @@ import com.example.doanltdd_ckcdigital.models.AuthResponse
 import com.example.doanltdd_ckcdigital.models.CartItemResponse
 import com.example.doanltdd_ckcdigital.models.CategoryModel
 import com.example.doanltdd_ckcdigital.models.LoginRequest
+import com.example.doanltdd_ckcdigital.models.Order
 import com.example.doanltdd_ckcdigital.models.ProductAddToCart
 import com.example.doanltdd_ckcdigital.models.ProductModel
 import com.example.doanltdd_ckcdigital.models.RegisterRequest
@@ -71,7 +72,6 @@ interface ApiService {
     @PUT("api/cart/update")
     suspend fun updateCartQuantity(@Body request: Map<String, Int>): SimpleResponse
 
-    // Hàm xóa sản phẩm theo CartItemID
     @DELETE("api/cart/remove/{cartItemId}")
     suspend fun removeCartItem(@Path("cartItemId") cartItemId: Int): SimpleResponse
 
@@ -92,10 +92,13 @@ interface ApiService {
     ): SimpleResponse
 
 
+    @GET("api/admin/orders")
+    suspend fun getAllOrders(): ApiResponse<List<Order>>
+
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "https://server-api-doan.onrender.com"
+    private const val BASE_URL = "http://10.0.2.2:3000/"
 
     val apiService: ApiService by lazy {
         Retrofit.Builder()

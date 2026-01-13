@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.example.doanltdd_ckcdigital.navigation.AppNavGraph
-import com.example.doanltdd_ckcdigital.ui.theme.DoAnLTDD_CKCDigitalTheme // Tên theme dự án của bạn
+import com.example.doanltdd_ckcdigital.ui.theme.DoAnLTDD_CKCDigitalTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

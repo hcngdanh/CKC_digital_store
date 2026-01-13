@@ -318,7 +318,6 @@ fun CheckoutScreen(
                 }
             }
 
-            // NÚT ĐẶT HÀNG
             Button(
                 onClick = onOrderSuccess,
                 modifier = Modifier.fillMaxWidth().height(54.dp).padding(bottom = 8.dp),
@@ -329,7 +328,6 @@ fun CheckoutScreen(
             }
         }
 
-        // --- BOTTOM SHEET VOUCHER ---
         if (showVoucherSheet) {
             ModalBottomSheet(
                 onDismissRequest = { showVoucherSheet = false },

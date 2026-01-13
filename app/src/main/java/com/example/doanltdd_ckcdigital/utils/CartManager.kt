@@ -4,7 +4,6 @@ import androidx.compose.runtime.mutableStateListOf
 import com.example.doanltdd_ckcdigital.models.CartItemResponse
 import com.example.doanltdd_ckcdigital.models.ProductModel
 
-// 1. Cấu trúc CartItem gọn nhẹ, phẳng (không lồng ProductModel)
 data class CartItem(
     val CartItemID: Int = 0,
     val ProductID: Int,
@@ -21,7 +20,6 @@ object CartManager {
     val cartCount: Int get() = _cartItems.sumOf { it.quantity }
     val badgeCartCount: Int get() = _cartItems.size
 
-    // Hàm đồng bộ dữ liệu từ Server về Client
     fun syncCartFromServer(serverItems: List<CartItemResponse>) {
         _cartItems.clear()
         serverItems.forEach { res ->
@@ -38,7 +36,6 @@ object CartManager {
         }
     }
 
-    // 2. Hàm thêm giỏ hàng: Thêm xong -> Tải lại danh sách ngay
     suspend fun addToCart(userId: Int, product: ProductModel) {
         try {
             val requestBody = com.example.doanltdd_ckcdigital.models.ProductAddToCart(
@@ -50,7 +47,6 @@ object CartManager {
             val response = com.example.doanltdd_ckcdigital.services.RetrofitClient.apiService.addToCart(requestBody)
 
             if (response.success) {
-                // REALTIME: Gọi ngay API lấy danh sách mới nhất để cập nhật ID chuẩn
                 val refreshResponse = com.example.doanltdd_ckcdigital.services.RetrofitClient.apiService.getCartItems(userId)
                 if (refreshResponse.success) {
                     syncCartFromServer(refreshResponse.data)
