@@ -47,24 +47,19 @@ fun ProductDetailScreen(
     var reviews by remember { mutableStateOf<List<Review>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
-    // --- STATE YÊU THÍCH ---
     var isFavorite by remember { mutableStateOf(false) }
 
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
 
-    // 1. Tải dữ liệu & Kiểm tra trạng thái yêu thích
     LaunchedEffect(productId) {
         try {
             isLoading = true
-            // Gọi API lấy chi tiết sản phẩm
             val productRes = RetrofitClient.apiService.getProductDetail(productId)
             if (productRes.success) product = productRes.data
 
-            // Gọi API lấy đánh giá
             val reviewRes = RetrofitClient.apiService.getProductReviews(productId)
             if (reviewRes.success) reviews = reviewRes.data
 
-            // Kiểm tra Wishlist (Nếu đã đăng nhập)
             if (user != null) {
                 val favResponse = RetrofitClient.apiService.checkFavorite(user.UserID, productId)
                 if (favResponse.success) {
@@ -78,14 +73,12 @@ fun ProductDetailScreen(
         }
     }
 
-    // Hàm xử lý Click tim
     fun toggleFavorite() {
         if (user == null) {
             Toast.makeText(context, "Vui lòng đăng nhập để lưu yêu thích", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Cập nhật UI ngay lập tức (Optimistic Update)
         isFavorite = !isFavorite
 
         scope.launch {
@@ -94,16 +87,14 @@ fun ProductDetailScreen(
                 val response = RetrofitClient.apiService.toggleWishlist(request)
 
                 if (response.success) {
-                    // Cập nhật lại state chuẩn từ server
                     isFavorite = response.isFavorite
                     val msg = if (response.isFavorite) "Đã thêm vào yêu thích" else "Đã xóa khỏi yêu thích"
                     Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                 } else {
-                    // Revert nếu server báo lỗi
                     isFavorite = !isFavorite
                 }
             } catch (e: Exception) {
-                isFavorite = !isFavorite // Revert nếu lỗi mạng
+                isFavorite = !isFavorite
                 e.printStackTrace()
             }
         }
@@ -173,7 +164,6 @@ fun ProductDetailScreen(
                 }
                 val pagerState = rememberPagerState(pageCount = { images.size })
 
-                // Slider Ảnh
                 Box(Modifier.fillMaxWidth().background(Color.White).padding(vertical = 16.dp)) {
                     HorizontalPager(state = pagerState, modifier = Modifier.height(300.dp)) { page ->
                         AsyncImage(
@@ -191,9 +181,7 @@ fun ProductDetailScreen(
                     }
                 }
 
-                // Thông tin chính (Tên, Giá, Wishlist)
                 Column(Modifier.fillMaxWidth().background(Color.White).padding(16.dp)) {
-                    // --- SỬA ĐỔI: Dùng Row để đặt Tên và Nút tim trên cùng 1 hàng ---
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -203,10 +191,9 @@ fun ProductDetailScreen(
                             text = product!!.ProductName,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.weight(1f) // Để tên chiếm phần lớn không gian
+                            modifier = Modifier.weight(1f)
                         )
 
-                        // Nút Tim (Wishlist)
                         IconButton(onClick = { toggleFavorite() }) {
                             Icon(
                                 imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
