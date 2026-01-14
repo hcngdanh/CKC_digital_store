@@ -25,11 +25,6 @@ import com.example.doanltdd_ckcdigital.models.*
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
 import com.example.doanltdd_ckcdigital.utils.CartManager
 import com.example.doanltdd_ckcdigital.utils.SessionManager
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
@@ -47,7 +42,6 @@ fun ProductDetailScreen(
     val scope = rememberCoroutineScope()
     val sessionManager = remember { SessionManager.getInstance(context) }
     val user = sessionManager.currentUser
-    var showReviewDialog by remember { mutableStateOf(false) }
 
     var product by remember { mutableStateOf<ProductModel?>(null) }
     var reviews by remember { mutableStateOf<List<Review>>(emptyList()) }
@@ -79,37 +73,6 @@ fun ProductDetailScreen(
         }
     }
 
-    fun submitReview(rating: Int, comment: String) {
-        if (user == null) {
-            Toast.makeText(context, "Bạn cần đăng nhập", Toast.LENGTH_SHORT).show()
-            return
-        }
-        scope.launch {
-            try {
-                val reviewData = mapOf(
-                    "user_id" to user.UserID,
-                    "product_id" to productId,
-                    "rating" to rating,
-                    "comment" to comment
-                )
-                val res = RetrofitClient.apiService.addReview(reviewData)
-
-                if (res.success) {
-                    Toast.makeText(context, "Đánh giá thành công!", Toast.LENGTH_SHORT).show()
-                    showReviewDialog = false
-
-                    val newReviews = RetrofitClient.apiService.getProductReviews(productId)
-                    if (newReviews.success) reviews = newReviews.data
-                } else {
-                    Toast.makeText(context, "Lỗi: ${res.message}", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Toast.makeText(context, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
 
     fun toggleFavorite() {
         if (user == null) {
@@ -137,15 +100,7 @@ fun ProductDetailScreen(
             }
         }
     }
-    if (showReviewDialog) {
-        WriteReviewDialog(
-            productName = product?.ProductName ?: "Sản phẩm",
-            userName = user?.FullName ?: "Bạn",
-            userAvatar = user?.AvatarURL,
-            onDismiss = { showReviewDialog = false },
-            onSubmit = { rating, comment -> submitReview(rating, comment) }
-        )
-    }
+
     Scaffold(
         topBar = {
             Column(modifier = Modifier.background(Color.Black).statusBarsPadding()) {
@@ -293,33 +248,40 @@ fun ProductDetailScreen(
                 }
 
                 Spacer(Modifier.height(8.dp))
-                Column(Modifier.fillMaxWidth().background(Color.White).padding(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Đánh giá khách hàng", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = "Đánh giá khách hàng",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
 
-                        // Nút bấm mở Dialog
-                        TextButton(onClick = {
-                            if (user != null) showReviewDialog = true
-                            else Toast.makeText(context, "Cần đăng nhập", Toast.LENGTH_SHORT).show()
-                        }) {
-                            Text("Viết đánh giá", color = Color(0xFF1976D2), fontWeight = FontWeight.SemiBold)
-                        }
-                    }
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     if (reviews.isEmpty()) {
-                        Text("Chưa có đánh giá nào", color = Color.Gray, modifier = Modifier.padding(vertical = 12.dp))
+                        Text(
+                            text = "Chưa có đánh giá nào",
+                            color = Color.Gray,
+                            modifier = Modifier.padding(vertical = 12.dp)
+                        )
                     } else {
-                        reviews.forEach { ReviewItem(it) }
+                        reviews.forEach { review ->
+                            ReviewItem(review)
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
                     }
                 }
             }
         }
-    }
-}
+
+
 
 @Composable
 fun SpecRow(label: String, value: String) {
