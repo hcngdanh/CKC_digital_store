@@ -48,12 +48,13 @@ fun EditProfileScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Chỉnh sửa thông tin", fontWeight = FontWeight.Bold) },
+                title = { Text("Chỉnh sửa thông tin", fontWeight = FontWeight.Bold, color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Black)
             )
         }
     ) { padding ->
@@ -130,3 +131,4 @@ fun EditProfileScreen(
         }
     }
 }
+
