@@ -204,7 +204,7 @@ private fun AdminOrderCard(order: Order, onEditStatus: () -> Unit) {
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
     val status = OrderStatus.fromString(order.status)
     val itemsSummary = remember(order.items) {
-        order.items.joinToString(", ") { "${it.productName} (x${it.quantity})" }.ifEmpty { "Không có sản phẩm" }
+        order.items?.joinToString(", ") { "${it.productName} (x${it.quantity})" } ?: "Không có sản phẩm"
     }
 
     Card(
@@ -228,7 +228,7 @@ private fun AdminOrderCard(order: Order, onEditStatus: () -> Unit) {
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Khách hàng: ", fontSize = 13.sp, color = Color.Gray)
-                Text(order.userFullName, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                Text(order.userFullName ?: "Không rõ", fontSize = 13.sp, fontWeight = FontWeight.Medium)
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(

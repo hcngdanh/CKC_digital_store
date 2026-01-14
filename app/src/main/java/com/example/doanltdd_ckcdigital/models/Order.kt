@@ -10,7 +10,7 @@ data class Order(
     val userId: Int,
 
     @SerializedName("FullName")
-    val userFullName: String,
+    val userFullName: String?,
 
     @SerializedName("OrderDate")
     val orderDate: String,
@@ -20,7 +20,7 @@ data class Order(
     @SerializedName("Status")
     val status: String,
     @SerializedName("OrderItems")
-    val items: List<OrderItem>
+    val items: List<OrderItem>?
 )
 data class OrderItem(
     @SerializedName("OrderItemID")
