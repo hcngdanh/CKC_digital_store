@@ -21,26 +21,41 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.doanltdd_ckcdigital.models.Order
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 
-// --- ENUM TRẠNG THÁI (Đã chuẩn hóa theo Database) ---
+// --- ENUM TRẠNG THÁI (Đã đồng bộ với Database thực tế của bạn) ---
 enum class OrderStatus(val apiName: String, val label: String, val color: Color) {
-    PENDING("pending", "Chờ xử lý", Color(0xFFFF9800)),       // Cam
+    PENDING("Chờ xử lý", "Chờ xử lý", Color(0xFFFF9800)),       // Cam
+
+    // DB đang lưu là "pickup" -> Label hiển thị phải là "Chờ lấy hàng"
     WAITING("pickup", "Chờ lấy hàng", Color(0xFFFFC107)),     // Vàng
-    SHIPPING("shipping", "Đang giao hàng", Color(0xFF2196F3)),// Xanh dương
-    COMPLETED("completed", "Hoàn thành", Color(0xFF4CAF50)),  // Xanh lá
-    CANCELLED("cancelled", "Đã hủy", Color(0xFFE91E63));      // Đỏ
+
+    // DB đang lưu là "Đang giao hàng" hoặc "shipping"
+    SHIPPING("Đang giao hàng", "Đang giao hàng", Color(0xFF2196F3)),// Xanh dương
+
+    COMPLETED("Hoàn thành", "Hoàn thành", Color(0xFF4CAF50)),  // Xanh lá
+    CANCELLED("Đã hủy", "Đã hủy", Color(0xFFE91E63));      // Đỏ
 
     companion object {
         fun fromString(status: String?): OrderStatus {
             return entries.find {
+                // So sánh chính xác
                 it.apiName.equals(status, ignoreCase = true) ||
                         it.label.equals(status, ignoreCase = true) ||
-                        // Map chính xác chuỗi từ Database để tránh lỗi hiển thị
-                        (status == "Chờ giao hàng" && it == WAITING) ||
-                        (status == "Đang giao" && it == SHIPPING)
+
+                        // --- MAP DỮ LIỆU CŨ/LỆCH (QUAN TRỌNG) ---
+                        // Nếu DB lưu "pending" -> Map về PENDING
+                        (status.equals("pending", ignoreCase = true) && it == PENDING) ||
+
+                        // Nếu DB lưu "pickup" hoặc "Chờ lấy hàng" -> Map về WAITING
+                        ((status.equals("pickup", ignoreCase = true) || status.equals("Chờ lấy hàng", ignoreCase = true)) && it == WAITING) ||
+
+                        // Nếu DB lưu "shipping" hoặc "Đang giao" -> Map về SHIPPING
+                        ((status.equals("shipping", ignoreCase = true) || status.equals("Đang giao", ignoreCase = true)) && it == SHIPPING)
+
             } ?: PENDING
         }
     }
@@ -56,6 +71,7 @@ fun AdminOrderManagerScreen(
     var isLoading by remember { mutableStateOf(true) }
     var selectedTabIndex by remember { mutableStateOf(0) }
 
+    // Danh sách Tab hiển thị trên màn hình
     val tabs = listOf("Tất cả") + OrderStatus.entries.map { it.label }
 
     LaunchedEffect(Unit) {
@@ -72,6 +88,7 @@ fun AdminOrderManagerScreen(
         }
     }
 
+    // Logic lọc danh sách theo Tab đã chọn
     val filteredList = remember(orders, selectedTabIndex) {
         if (selectedTabIndex == 0) {
             orders
@@ -155,22 +172,31 @@ fun AdminOrderManagerScreen(
 fun AdminOrderCardItem(order: Order, onClick: () -> Unit) {
     val status = OrderStatus.fromString(order.status)
 
-    // --- CẬP NHẬT HIỂN THỊ NGÀY GIỜ (dd/MM/yyyy HH:mm) ---
+    // --- XỬ LÝ NGÀY THÁNG ---
     val dateStr = try {
         if (order.orderDate.isNullOrEmpty()) "N/A"
         else {
-            // Định dạng đầu vào từ MySQL: yyyy-MM-dd HH:mm:ss
+            // Input từ DB: 2026-01-08 11:58:04
             val input = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-            // Định dạng đầu ra đẹp hơn: 14/01/2026 16:25
+            // Output hiển thị: 08/01/2026 11:58
             val output = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("vi", "VN"))
 
-            val date = input.parse(order.orderDate)
+            // Cố gắng parse chuẩn DB trước
+            var date = input.parse(order.orderDate)
+
+            // Nếu thất bại (do DB lưu chuẩn ISO T), thử parse lại
+            if (date == null) {
+                val isoInput = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                date = isoInput.parse(order.orderDate)
+            }
+
             if (date != null) output.format(date) else order.orderDate
         }
     } catch (e: Exception) {
         order.orderDate ?: "N/A"
     }
 
+    // --- ƯU TIÊN HIỂN THỊ TÊN NGƯỜI NHẬN ---
     val displayName = if (!order.receiverName.isNullOrEmpty()) {
         order.receiverName
     } else {
@@ -194,7 +220,6 @@ fun AdminOrderCardItem(order: Order, onClick: () -> Unit) {
                 Text("Đơn #${order.orderId}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Text(displayName, fontSize = 14.sp, color = Color.Black, fontWeight = FontWeight.Medium)
                 Spacer(Modifier.height(4.dp))
-                // Hiển thị ngày giờ đã format
                 Text(dateStr, fontSize = 12.sp, color = Color.Gray)
             }
 
