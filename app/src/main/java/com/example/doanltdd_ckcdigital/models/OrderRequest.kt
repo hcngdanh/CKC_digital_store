@@ -4,8 +4,12 @@ data class OrderRequest(
     val userId: Int,
     val totalAmount: Double,
     val shipAddress: String,
+    // --- THÊM 2 TRƯỜNG NÀY ---
+    val receiverName: String,
+    val phoneNumber: String,
+    // -------------------------
     val paymentMethodId: Int,
-    val shippingMethodId: Int, // Thêm ID vận chuyển
+    val shippingMethodId: Int,
     val items: List<OrderDetailRequest>
 )
 

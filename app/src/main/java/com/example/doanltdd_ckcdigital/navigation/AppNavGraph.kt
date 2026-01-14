@@ -28,16 +28,19 @@ fun AppNavGraph() {
     val context = LocalContext.current
     val sessionManager = remember { SessionManager.getInstance(context) }
 
+    // ViewModel Auth
     val authViewModel: AuthViewModel = viewModel(factory = object : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return AuthViewModel(sessionManager) as T
         }
     })
 
+    // ViewModel Product
     val productViewModel: ProductViewModel = viewModel()
     val isLoading by productViewModel.isLoading.collectAsState()
     val currentUser = sessionManager.currentUser
 
+    // Sync giỏ hàng khi mở app
     LaunchedEffect(currentUser) {
         if (currentUser != null) {
             try {
@@ -55,6 +58,7 @@ fun AppNavGraph() {
 
     NavHost(navController = navController, startDestination = "splash") {
 
+        // --- SPLASH SCREEN ---
         composable("splash") {
             SplashScreen(isLoading = isLoading, onDataReady = {
                 val savedUser = sessionManager.currentUser
@@ -66,6 +70,7 @@ fun AppNavGraph() {
             })
         }
 
+        // --- USER ROUTES ---
         composable("product_list") {
             ProductListScreen(
                 user = sessionManager.currentUser,
@@ -156,13 +161,12 @@ fun AppNavGraph() {
             })
         }
 
-        // --- CẬP NHẬT ROUTE order_history ĐỂ NHẬN THAM SỐ STATUS ---
+        // --- ORDER HISTORY (USER) ---
         composable(
             route = "order_history?status={status}",
             arguments = listOf(navArgument("status") { defaultValue = "ALL" })
         ) { backStackEntry ->
             val statusString = backStackEntry.arguments?.getString("status") ?: "ALL"
-            // Chuyển String thành Enum HistoryStatus
             val initialTab = try {
                 HistoryStatus.valueOf(statusString)
             } catch (e: Exception) {
@@ -173,7 +177,7 @@ fun AppNavGraph() {
             if (user != null) {
                 OrderHistoryScreen(
                     userId = user.UserID,
-                    initialTab = initialTab, // Truyền Tab khởi tạo vào màn hình
+                    initialTab = initialTab,
                     onBackClick = { navController.popBackStack() },
                     onOrderClick = { orderId -> navController.navigate("order_detail/$orderId") }
                 )
@@ -192,6 +196,7 @@ fun AppNavGraph() {
             }
         }
 
+        // --- ADDRESS & PROFILE ---
         composable("address_list") {
             val user = sessionManager.currentUser
             if (user != null) {
@@ -211,26 +216,6 @@ fun AppNavGraph() {
             }
         }
 
-        composable("admin_dashboard") {
-            val user = sessionManager.currentUser
-            if (user != null && user.RoleID == 1) {
-                AdminDashboardScreen(
-                    user = user,
-                    onLogout = {
-                        sessionManager.clearSession()
-                        navController.navigate("login") { popUpTo("admin_dashboard") { inclusive = true } }
-                    },
-                    onNavigateToOrderManager = { navController.navigate("admin_order_manager") }
-                )
-            } else {
-                navController.navigate("login") { popUpTo("admin_dashboard") { inclusive = true } }
-            }
-        }
-
-        composable("admin_order_manager") {
-            AdminOrderManagerScreen(onBackClick = { navController.popBackStack() })
-        }
-
         composable("profile") {
             val user = sessionManager.currentUser
             if (user != null) {
@@ -242,12 +227,14 @@ fun AppNavGraph() {
                         navController.navigate("product_list") { popUpTo("product_list") { inclusive = true } }
                     },
                     onAddressManageClick = { navController.navigate("address_list") },
-
-                    // --- CẬP NHẬT: Gửi Status sang OrderHistory ---
                     onOrderHistoryClick = { status ->
-                        navController.navigate("order_history?status=$status")
+                        // Chuyển Enum hoặc String sang màn hình history
+                        // Lưu ý: ProfileScreen của bạn đang trả về Unit hoặc String tùy phiên bản
+                        // Nếu phiên bản mới nhất trả về String status ("CONFIRMING", "SHIPPING"...):
+                        // navController.navigate("order_history?status=$status")
+                        // Nếu chỉ là () -> Unit:
+                        navController.navigate("order_history")
                     },
-
                     onEditProfileClick = { navController.navigate("edit_profile") },
                     onPasswordChangeClick = { navController.navigate("change_password") },
                     onFavoriteClick = { navController.navigate("wishlist") }
@@ -309,6 +296,7 @@ fun AppNavGraph() {
             )
         }
 
+        // --- AUTH ROUTES ---
         composable("login") {
             LoginScreen(
                 viewModel = authViewModel,
@@ -341,6 +329,53 @@ fun AppNavGraph() {
                 )
             } else {
                 navController.navigate("login")
+            }
+        }
+
+        // ==========================================
+        //         CÁC ROUTE ADMIN (ĐÃ SỬA)
+        // ==========================================
+
+        composable("admin_dashboard") {
+            val user = sessionManager.currentUser
+            if (user != null && user.RoleID == 1) {
+                AdminDashboardScreen(
+                    user = user,
+                    onLogout = {
+                        sessionManager.clearSession()
+                        navController.navigate("login") { popUpTo("admin_dashboard") { inclusive = true } }
+                    },
+                    // Điều hướng đến danh sách đơn hàng
+                    onNavigateToOrderManager = { navController.navigate("admin_order_manager") }
+                )
+            } else {
+                navController.navigate("login") { popUpTo("admin_dashboard") { inclusive = true } }
+            }
+        }
+
+        // Route Quản lý đơn hàng (List)
+        composable("admin_order_manager") {
+            AdminOrderManagerScreen(
+                onBackClick = { navController.popBackStack() },
+
+                // --- SỬA LỖI: Thêm callback onOrderClick để chuyển sang chi tiết ---
+                onOrderClick = { orderId ->
+                    navController.navigate("admin_order_detail/$orderId")
+                }
+            )
+        }
+
+        // Route Chi tiết đơn hàng Admin (Mới)
+        composable(
+            route = "admin_order_detail/{orderId}",
+            arguments = listOf(navArgument("orderId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getInt("orderId")
+            if (orderId != null) {
+                AdminOrderDetailScreen(
+                    orderId = orderId,
+                    onBackClick = { navController.popBackStack() }
+                )
             }
         }
     }
