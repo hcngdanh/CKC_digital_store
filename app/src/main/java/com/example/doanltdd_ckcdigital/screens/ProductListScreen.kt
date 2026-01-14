@@ -573,7 +573,7 @@ fun SideMenuContent(onItemClick: (String) -> Unit) {
         )
         HorizontalDivider(color = Color(0xFFEEEEEE))
 
-        Text("PHỤ KIỆN", modifier = Modifier.fillMaxWidth().clickable { onItemClick("PHỤ KIỆN") }.padding(16.dp), fontSize = 14.sp)
+        Text("PHỤ KIỆN", modifier = Modifier.fillMaxWidth().clickable { onItemClick("PHỤ KIỆN") }.padding(16.dp), fontSize = 14.sp, fontWeight = FontWeight.Bold)
         HorizontalDivider(color = Color(0xFFEEEEEE))
     }
 }
