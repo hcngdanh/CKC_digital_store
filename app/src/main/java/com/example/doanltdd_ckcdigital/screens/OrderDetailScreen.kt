@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
@@ -22,7 +23,21 @@ import coil.compose.AsyncImage
 import com.example.doanltdd_ckcdigital.models.OrderDetailResponse
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
 import java.util.Locale
+
+// Hàm helper format date (copy từ OrderHistoryScreen hoặc tách ra file Utils dùng chung)
+fun formatDetailDateTime(dateString: String?): String {
+    if (dateString.isNullOrEmpty()) return ""
+    return try {
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.000Z", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale("vi", "VN"))
+        val date = inputFormat.parse(dateString)
+        outputFormat.format(date!!)
+    } catch (e: Exception) {
+        dateString.replace("T", " ").substringBefore(".")
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,21 +47,17 @@ fun OrderDetailScreen(
 ) {
     var orderData by remember { mutableStateOf<OrderDetailResponse?>(null) }
     var isLoading by remember { mutableStateOf(true) }
-    var hasError by remember { mutableStateOf(false) } // Thêm biến check lỗi
+    var hasError by remember { mutableStateOf(false) }
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
 
-    // Load chi tiết đơn hàng
     LaunchedEffect(orderId) {
         try {
             isLoading = true
             hasError = false
-            Log.d("OrderDetail", "Fetching order ID: $orderId")
             val response = RetrofitClient.apiService.getOrderDetail(orderId)
-
             if (response.success && response.data != null) {
                 orderData = response.data
             } else {
-                Log.e("OrderDetail", "Response failed or data is null")
                 hasError = true
             }
         } catch (e: Exception) {
@@ -73,13 +84,11 @@ fun OrderDetailScreen(
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
             if (isLoading) {
-                // 1. Loading
                 CircularProgressIndicator(
                     color = Color(0xFFFF5722),
                     modifier = Modifier.align(Alignment.Center)
                 )
             } else if (orderData != null && !hasError) {
-                // 2. Data OK -> Hiển thị nội dung
                 val info = orderData!!.orderInfo
                 val items = orderData!!.orderItems
 
@@ -152,22 +161,33 @@ fun OrderDetailScreen(
                             }
                         }
                     }
+
+                    // 5. THÔNG TIN MÃ ĐƠN & THỜI GIAN (Thêm mới)
+                    item {
+                        Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                            Column(Modifier.padding(16.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Info, null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Thời gian đặt hàng", fontWeight = FontWeight.Bold)
+                                }
+                                Spacer(Modifier.height(8.dp))
+                                RowInfo("Mã đơn hàng", "#${info.OrderID}")
+                                // Hiển thị ngày giờ đặt hàng
+                                RowInfo("Ngày đặt hàng", formatDetailDateTime(info.OrderDate.toString()))
+                            }
+                        }
+                        Spacer(Modifier.height(24.dp)) // Khoảng trống cuối cùng
+                    }
                 }
             } else {
-                // 3. Lỗi / Null -> Hiển thị Error UI
+                // Error UI
                 Column(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = null,
-                        tint = Color.Gray,
-                        modifier = Modifier.size(64.dp)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Icon(Icons.Default.Warning, null, tint = Color.Gray, modifier = Modifier.size(64.dp))
                     Text(text = "Không tìm thấy thông tin đơn hàng!", color = Color.Gray)
-                    Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = onBackClick, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5722))) {
                         Text("Quay lại")
                     }
@@ -181,6 +201,6 @@ fun OrderDetailScreen(
 fun RowInfo(label: String, value: String) {
     Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, color = Color.Gray, fontSize = 14.sp)
-        Text(value, fontSize = 14.sp)
+        Text(value, fontSize = 14.sp, color = Color.Black)
     }
 }

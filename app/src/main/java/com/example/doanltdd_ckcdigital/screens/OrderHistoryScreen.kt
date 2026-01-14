@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.RateReview
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -24,9 +25,10 @@ import coil.compose.AsyncImage
 import com.example.doanltdd_ckcdigital.models.OrderHistoryModel
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
 import java.util.Locale
 
-// Màu sắc theo giao diện mẫu
+// Màu sắc
 val OrangeColor = Color(0xFFFF5722)
 val GreenColor = Color(0xFF4CAF50)
 val BlueColor = Color(0xFF2196F3)
@@ -34,24 +36,43 @@ val GrayText = Color(0xFF757575)
 
 enum class HistoryStatus(val label: String, val dbStatusList: List<String>) {
     ALL("Tất cả", emptyList()),
-    PENDING("Chờ xác nhận", listOf("Chờ xử lý", "Chờ lấy hàng")),
-    SHIPPING("Đang giao", listOf("Đang giao hàng")),
+    CONFIRMING("Chờ xác nhận", listOf("Chờ xử lý")),
+    PICKUP("Chờ lấy hàng", listOf("Chờ lấy hàng")),
+    SHIPPING("Chờ giao hàng", listOf("Đang giao hàng")),
     COMPLETED("Hoàn thành", listOf("Hoàn thành")),
     CANCELLED("Đã hủy", listOf("Đã hủy"))
+}
+
+// Hàm format ngày giờ
+fun formatDateTime(dateString: String?): String {
+    if (dateString.isNullOrEmpty()) return ""
+    return try {
+        // Giả sử server trả về format ISO 8601 (yyyy-MM-ddTHH:mm:ss.000Z)
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.000Z", Locale.getDefault())
+        // Nếu server trả về format khác (ví dụ yyyy-MM-dd HH:mm:ss), hãy sửa dòng trên
+
+        val outputFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("vi", "VN"))
+        val date = inputFormat.parse(dateString)
+        outputFormat.format(date!!)
+    } catch (e: Exception) {
+        // Fallback: Cắt chuỗi đơn giản nếu parse lỗi
+        dateString.replace("T", " ").substringBefore(".")
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderHistoryScreen(
     userId: Int,
+    initialTab: HistoryStatus = HistoryStatus.ALL,
     onBackClick: () -> Unit,
-    onOrderClick: (Int) -> Unit // Callback để chuyển sang trang chi tiết
+    onOrderClick: (Int) -> Unit,
+    onRateClick: (Int) -> Unit = {}
 ) {
     var orderList by remember { mutableStateOf<List<OrderHistoryModel>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-    var selectedTab by remember { mutableStateOf(HistoryStatus.ALL) }
+    var selectedTab by remember { mutableStateOf(initialTab) }
 
-    // Gọi API lấy danh sách đơn hàng
     LaunchedEffect(userId) {
         try {
             isLoading = true
@@ -86,7 +107,7 @@ fun OrderHistoryScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-            // Thanh Tab trạng thái
+
             ScrollableTabRow(
                 selectedTabIndex = HistoryStatus.values().indexOf(selectedTab),
                 containerColor = Color.White,
@@ -108,7 +129,9 @@ fun OrderHistoryScreen(
                                 text = status.label,
                                 fontSize = 14.sp,
                                 fontWeight = if (selectedTab == status) FontWeight.Bold else FontWeight.Normal,
-                                color = if (selectedTab == status) OrangeColor else GrayText
+                                color = if (selectedTab == status) OrangeColor else GrayText,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     )
@@ -121,7 +144,7 @@ fun OrderHistoryScreen(
                 }
             } else if (filteredOrders.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Chưa có đơn hàng nào", color = GrayText)
+                    Text("Không có đơn hàng nào", color = GrayText)
                 }
             } else {
                 LazyColumn(
@@ -129,7 +152,11 @@ fun OrderHistoryScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(filteredOrders) { order ->
-                        OrderHistoryItemCard(order, onClick = { onOrderClick(order.OrderID) })
+                        OrderHistoryItemCard(
+                            order = order,
+                            onClick = { onOrderClick(order.OrderID) },
+                            onRateClick = { onRateClick(order.OrderID) }
+                        )
                     }
                 }
             }
@@ -138,14 +165,18 @@ fun OrderHistoryScreen(
 }
 
 @Composable
-fun OrderHistoryItemCard(order: OrderHistoryModel, onClick: () -> Unit) {
+fun OrderHistoryItemCard(
+    order: OrderHistoryModel,
+    onClick: () -> Unit,
+    onRateClick: () -> Unit
+) {
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
 
-    // Màu trạng thái
     val statusColor = when (order.OrderStatus) {
         "Hoàn thành" -> GreenColor
         "Đã hủy" -> Color.Red
         "Đang giao hàng" -> BlueColor
+        "Chờ lấy hàng" -> Color(0xFFFFA000)
         else -> OrangeColor
     }
 
@@ -153,22 +184,43 @@ fun OrderHistoryItemCard(order: OrderHistoryModel, onClick: () -> Unit) {
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(2.dp),
         shape = RoundedCornerShape(8.dp),
-        modifier = Modifier.fillMaxWidth().clickable { onClick() } // Bấm vào Card thì gọi onClick
+        modifier = Modifier.fillMaxWidth().clickable { onClick() }
     ) {
         Column(Modifier.padding(12.dp)) {
-            // Header: Mã đơn hàng & Trạng thái
+            // Header: Mã đơn + Ngày đặt + Trạng thái
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top // Căn lề trên cùng
             ) {
-                Text("Mã đơn hàng: #${order.OrderID}", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                Text(order.OrderStatus, color = statusColor, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                Column {
+                    Text("Mã đơn hàng: #${order.OrderID}", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    // --- THÊM HIỂN THỊ NGÀY ĐẶT Ở ĐÂY ---
+                    Text(
+                        text = "Ngày đặt: ${formatDateTime(order.OrderDate.toString())}",
+                        color = GrayText,
+                        fontSize = 12.sp
+                    )
+                }
+
+                // Trạng thái (Badge)
+                Surface(
+                    color = statusColor.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(4.dp)
+                ) {
+                    Text(
+                        order.OrderStatus,
+                        color = statusColor,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
             }
 
             HorizontalDivider(Modifier.padding(vertical = 12.dp), color = Color(0xFFEEEEEE))
 
-            // Body: Sản phẩm đại diện
+            // Body
             Row {
                 AsyncImage(
                     model = order.ThumbnailURL ?: "",
@@ -181,26 +233,28 @@ fun OrderHistoryItemCard(order: OrderHistoryModel, onClick: () -> Unit) {
                     Text(order.ProductName ?: "Sản phẩm", maxLines = 1, overflow = TextOverflow.Ellipsis, fontSize = 15.sp)
                     Spacer(Modifier.height(4.dp))
                     Text("x${order.TotalQuantity}", color = GrayText, fontSize = 13.sp)
-                    Spacer(Modifier.height(8.dp))
-                    // Tag "7 ngày trả hàng" giống hình mẫu
-                    Surface(
-                        border = BorderStroke(1.dp, OrangeColor),
-                        shape = RoundedCornerShape(2.dp),
-                        color = Color.Transparent
-                    ) {
-                        Text(
-                            "7 ngày trả hàng",
-                            color = OrangeColor,
-                            fontSize = 10.sp,
-                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-                        )
+
+                    if (order.OrderStatus == "Hoàn thành" || order.OrderStatus == "Đang giao hàng") {
+                        Spacer(Modifier.height(8.dp))
+                        Surface(
+                            border = BorderStroke(1.dp, OrangeColor),
+                            shape = RoundedCornerShape(2.dp),
+                            color = Color.Transparent
+                        ) {
+                            Text(
+                                "7 ngày trả hàng",
+                                color = OrangeColor,
+                                fontSize = 10.sp,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                            )
+                        }
                     }
                 }
             }
 
             HorizontalDivider(Modifier.padding(vertical = 12.dp), color = Color(0xFFEEEEEE))
 
-            // Footer: Tổng tiền & Nút bấm
+            // Footer
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -219,18 +273,21 @@ fun OrderHistoryItemCard(order: OrderHistoryModel, onClick: () -> Unit) {
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
-
-            // Nút bấm hành động (Canh phải)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                OutlinedButton(
-                    onClick = { /* Chat shop */ },
-                    shape = RoundedCornerShape(4.dp),
-                    modifier = Modifier.height(36.dp),
-                    border = BorderStroke(1.dp, GrayText),
-                    contentPadding = PaddingValues(horizontal = 16.dp)
-                ) {
-                    Text("Liên hệ Shop", color = Color.Black, fontSize = 12.sp)
+            // Nút đánh giá (Chỉ hiện khi Hoàn thành)
+            if (order.OrderStatus == "Hoàn thành") {
+                Spacer(Modifier.height(12.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Button(
+                        onClick = onRateClick,
+                        shape = RoundedCornerShape(4.dp),
+                        modifier = Modifier.height(36.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = OrangeColor),
+                        contentPadding = PaddingValues(horizontal = 16.dp)
+                    ) {
+                        Icon(Icons.Outlined.RateReview, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.White)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Đánh giá", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }

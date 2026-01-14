@@ -38,7 +38,6 @@ fun AppNavGraph() {
     val isLoading by productViewModel.isLoading.collectAsState()
     val currentUser = sessionManager.currentUser
 
-    // Tự động tải giỏ hàng
     LaunchedEffect(currentUser) {
         if (currentUser != null) {
             try {
@@ -60,13 +59,9 @@ fun AppNavGraph() {
             SplashScreen(isLoading = isLoading, onDataReady = {
                 val savedUser = sessionManager.currentUser
                 if (savedUser != null && savedUser.RoleID == 1) {
-                    navController.navigate("admin_dashboard") {
-                        popUpTo("splash") { inclusive = true }
-                    }
+                    navController.navigate("admin_dashboard") { popUpTo("splash") { inclusive = true } }
                 } else {
-                    navController.navigate("product_list") {
-                        popUpTo("splash") { inclusive = true }
-                    }
+                    navController.navigate("product_list") { popUpTo("splash") { inclusive = true } }
                 }
             })
         }
@@ -76,9 +71,7 @@ fun AppNavGraph() {
                 user = sessionManager.currentUser,
                 onLogout = {
                     sessionManager.clearSession()
-                    navController.navigate("login") {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                    }
+                    navController.navigate("login") { popUpTo(navController.graph.startDestinationId) { inclusive = true } }
                 },
                 onProductClick = { id -> navController.navigate("product_detail/$id") },
                 onCartClick = { navController.navigate("cart") },
@@ -149,9 +142,7 @@ fun AppNavGraph() {
                     buyNowProductId = buyNowId,
                     onOrderSuccess = {
                         if (buyNowId == -1) CartManager.clearCart()
-                        navController.navigate("order_success") {
-                            popUpTo("product_list") { inclusive = false }
-                        }
+                        navController.navigate("order_success") { popUpTo("product_list") { inclusive = false } }
                     }
                 )
             } else {
@@ -160,26 +151,31 @@ fun AppNavGraph() {
         }
 
         composable("order_success") {
-            OrderSuccessScreen(
-                onContinueShoppingClick = {
-                    navController.navigate("product_list") {
-                        popUpTo("product_list") { inclusive = true }
-                    }
-                }
-            )
+            OrderSuccessScreen(onContinueShoppingClick = {
+                navController.navigate("product_list") { popUpTo("product_list") { inclusive = true } }
+            })
         }
 
-        // --- ĐÃ SỬA PHẦN NÀY: Thêm tham số onOrderClick ---
-        composable("order_history") {
+        // --- CẬP NHẬT ROUTE order_history ĐỂ NHẬN THAM SỐ STATUS ---
+        composable(
+            route = "order_history?status={status}",
+            arguments = listOf(navArgument("status") { defaultValue = "ALL" })
+        ) { backStackEntry ->
+            val statusString = backStackEntry.arguments?.getString("status") ?: "ALL"
+            // Chuyển String thành Enum HistoryStatus
+            val initialTab = try {
+                HistoryStatus.valueOf(statusString)
+            } catch (e: Exception) {
+                HistoryStatus.ALL
+            }
+
             val user = sessionManager.currentUser
             if (user != null) {
                 OrderHistoryScreen(
                     userId = user.UserID,
+                    initialTab = initialTab, // Truyền Tab khởi tạo vào màn hình
                     onBackClick = { navController.popBackStack() },
-                    onOrderClick = { orderId ->
-                        // Chuyển hướng sang màn hình chi tiết
-                        navController.navigate("order_detail/$orderId")
-                    }
+                    onOrderClick = { orderId -> navController.navigate("order_detail/$orderId") }
                 )
             } else {
                 navController.navigate("login")
@@ -192,10 +188,7 @@ fun AppNavGraph() {
         ) { backStackEntry ->
             val orderId = backStackEntry.arguments?.getInt("orderId")
             if (orderId != null) {
-                OrderDetailScreen(
-                    orderId = orderId,
-                    onBackClick = { navController.popBackStack() }
-                )
+                OrderDetailScreen(orderId = orderId, onBackClick = { navController.popBackStack() })
             }
         }
 
@@ -225,18 +218,12 @@ fun AppNavGraph() {
                     user = user,
                     onLogout = {
                         sessionManager.clearSession()
-                        navController.navigate("login") {
-                            popUpTo("admin_dashboard") { inclusive = true }
-                        }
+                        navController.navigate("login") { popUpTo("admin_dashboard") { inclusive = true } }
                     },
-                    onNavigateToOrderManager = {
-                        navController.navigate("admin_order_manager")
-                    }
+                    onNavigateToOrderManager = { navController.navigate("admin_order_manager") }
                 )
             } else {
-                navController.navigate("login") {
-                    popUpTo("admin_dashboard") { inclusive = true }
-                }
+                navController.navigate("login") { popUpTo("admin_dashboard") { inclusive = true } }
             }
         }
 
@@ -252,12 +239,15 @@ fun AppNavGraph() {
                     onBackClick = { navController.popBackStack() },
                     onLogoutClick = {
                         sessionManager.clearSession()
-                        navController.navigate("product_list") {
-                            popUpTo("product_list") { inclusive = true }
-                        }
+                        navController.navigate("product_list") { popUpTo("product_list") { inclusive = true } }
                     },
                     onAddressManageClick = { navController.navigate("address_list") },
-                    onOrderHistoryClick = { navController.navigate("order_history") },
+
+                    // --- CẬP NHẬT: Gửi Status sang OrderHistory ---
+                    onOrderHistoryClick = { status ->
+                        navController.navigate("order_history?status=$status")
+                    },
+
                     onEditProfileClick = { navController.navigate("edit_profile") },
                     onPasswordChangeClick = { navController.navigate("change_password") },
                     onFavoriteClick = { navController.navigate("wishlist") }
@@ -322,16 +312,8 @@ fun AppNavGraph() {
         composable("login") {
             LoginScreen(
                 viewModel = authViewModel,
-                onNavigateToHome = {
-                    navController.navigate("product_list") {
-                        popUpTo("login") { inclusive = true }
-                    }
-                },
-                onNavigateToAdmin = {
-                    navController.navigate("admin_dashboard") {
-                        popUpTo("login") { inclusive = true }
-                    }
-                },
+                onNavigateToHome = { navController.navigate("product_list") { popUpTo("login") { inclusive = true } } },
+                onNavigateToAdmin = { navController.navigate("admin_dashboard") { popUpTo("login") { inclusive = true } } },
                 onNavigateToRegister = { navController.navigate("register") },
                 onNavigateToForgotPassword = { navController.navigate("forgot_password") },
                 onBack = { navController.popBackStack() }
@@ -347,30 +329,19 @@ fun AppNavGraph() {
             )
         }
 
-        composable("forgot_password") {
-            ForgotPasswordScreen(onBackClick = { navController.popBackStack() })
-        }
+        composable("forgot_password") { ForgotPasswordScreen(onBackClick = { navController.popBackStack() }) }
 
         composable("wishlist") {
             val user = sessionManager.currentUser
-
-            // Kiểm tra đăng nhập
             if (user != null) {
                 WishlistScreen(
                     userId = user.UserID,
                     onBackClick = { navController.popBackStack() },
-                    onProductClick = { productId ->
-                        // Khi bấm vào sản phẩm trong wishlist -> Chuyển sang màn hình chi tiết
-                        navController.navigate("product_detail/$productId")
-                    }
+                    onProductClick = { productId -> navController.navigate("product_detail/$productId") }
                 )
             } else {
-                // Nếu chưa đăng nhập, chuyển về màn hình Login
                 navController.navigate("login")
             }
         }
-
-
     }
 }
-
