@@ -20,8 +20,7 @@ import com.example.doanltdd_ckcdigital.models.ToggleWishlistResponse
 import com.example.doanltdd_ckcdigital.models.UserAddress
 import com.example.doanltdd_ckcdigital.models.UserModel
 import com.example.doanltdd_ckcdigital.models.Voucher
-import com.example.doanltdd_ckcdigital.modelsimport.DashboardStatsResponse
-import retrofit2.Response
+import com.example.doanltdd_ckcdigital.models.DashboardStatsResponse
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -59,7 +58,6 @@ interface ApiService {
     @POST("api/addresses")
     suspend fun addAddress(@Body address: UserAddress): SimpleResponse
 
-
     @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): AuthResponse
 
@@ -78,10 +76,8 @@ interface ApiService {
     @PUT("api/cart/update")
     suspend fun updateCartQuantity(@Body request: Map<String, Int>): SimpleResponse
 
-    // Hàm xóa sản phẩm theo CartItemID
     @DELETE("api/cart/remove/{cartItemId}")
     suspend fun removeCartItem(@Path("cartItemId") cartItemId: Int): SimpleResponse
-
 
     @GET("api/vouchers")
     suspend fun getVouchers(): ApiResponse<List<Voucher>>
@@ -127,10 +123,14 @@ interface ApiService {
 
     @GET("api/wishlist/check/{userId}/{productId}")
     suspend fun checkFavorite(@Path("userId") userId: Int, @Path("productId") productId: Int): ToggleWishlistResponse
+
+    // --- ĐÃ SỬA: Dùng SimpleResponse cho addReview ---
+    @POST("add_review")
+    suspend fun addReview(@Body body: Map<String, Any>): SimpleResponse
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "http://10.0.2.2:3000/"
+    private const val BASE_URL = "https://distensile-unrecruitable-georgann.ngrok-free.dev"
 
     val apiService: ApiService by lazy {
         Retrofit.Builder()

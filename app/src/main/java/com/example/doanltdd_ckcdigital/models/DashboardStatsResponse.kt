@@ -1,4 +1,4 @@
-package com.example.doanltdd_ckcdigital.modelsimport
+package com.example.doanltdd_ckcdigital.models
 
 import com.google.gson.annotations.SerializedName
 
