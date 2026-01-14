@@ -109,12 +109,6 @@ interface ApiService {
     @GET("api/orders/detail/{orderId}")
     suspend fun getOrderDetail(@Path("orderId") orderId: Int): ApiResponse<OrderDetailResponse>
 
-    @GET("api/admin/orders")
-    suspend fun getAllOrders(): ApiResponse<List<Order>>
-
-    @GET("api/admin/dashboard-stats")
-    suspend fun getDashboardStats(): ApiResponse<DashboardStatsResponse>
-
     @GET("api/wishlist/{userId}")
     suspend fun getWishlist(@Path("userId") userId: Int): ApiResponse<List<ProductModel>>
 
@@ -127,6 +121,22 @@ interface ApiService {
     // --- ĐÃ SỬA: Dùng SimpleResponse cho addReview ---
     @POST("add_review")
     suspend fun addReview(@Body body: Map<String, Any>): SimpleResponse
+
+    @GET("api/admin/dashboard-stats")
+    suspend fun getDashboardStats(): ApiResponse<DashboardStatsResponse>
+
+    // Lấy tất cả đơn hàng cho Admin
+    @GET("api/admin/orders")
+    suspend fun getAllOrders(): ApiResponse<List<Order>>
+
+    // Cập nhật trạng thái đơn hàng (Dùng cho màn hình chi tiết)
+    @PUT("api/orders/{orderId}/status")
+    suspend fun updateOrderStatus(
+        @Path("orderId") orderId: Int,
+        @Body body: Map<String, String> // Gửi lên: "status" và "cancelReason" (nếu hủy)
+    ): SimpleResponse
+
+
 }
 
 object RetrofitClient {

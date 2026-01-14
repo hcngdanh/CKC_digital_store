@@ -157,6 +157,12 @@ fun CheckoutScreen(
                     userId = user.UserID,
                     totalAmount = finalPrice,
                     shipAddress = "${selectedAddress.StreetAddress}, ${selectedAddress.City}",
+
+                    // --- CẬP NHẬT QUAN TRỌNG: Gửi kèm thông tin người nhận ---
+                    receiverName = selectedAddress.ReceiverName,
+                    phoneNumber = selectedAddress.PhoneNumber,
+                    // --------------------------------------------------------
+
                     paymentMethodId = paymentId,
                     shippingMethodId = selectedShippingMethod!!.ShippingMethodID,
                     items = orderDetails
@@ -173,6 +179,7 @@ fun CheckoutScreen(
                 }
             } catch (e: Exception) {
                 Toast.makeText(context, "Lỗi kết nối: ${e.message}", Toast.LENGTH_SHORT).show()
+                e.printStackTrace()
             } finally {
                 isProcessing = false
             }
@@ -308,7 +315,7 @@ fun CheckoutScreen(
                 }
             }
 
-            // 3. PHƯƠNG THỨC VẬN CHUYỂN (MỚI)
+            // 3. PHƯƠNG THỨC VẬN CHUYỂN
             SectionCard {
                 Column(Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -355,7 +362,7 @@ fun CheckoutScreen(
                 }
             }
 
-            // 4. VOUCHER (SHOPEE VOUCHER STYLE)
+            // 4. VOUCHER
             SectionCard {
                 Row(
                     modifier = Modifier

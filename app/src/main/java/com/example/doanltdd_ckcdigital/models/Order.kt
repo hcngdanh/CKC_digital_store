@@ -9,35 +9,33 @@ data class Order(
     @SerializedName("UserID")
     val userId: Int,
 
-    @SerializedName("FullName")
+    @SerializedName("FullName") // Tên tài khoản
     val userFullName: String?,
 
+    // --- THÊM DÒNG NÀY ---
+    @SerializedName("ReceiverName") // Tên người nhận hàng thực tế
+    val receiverName: String?,
+    // ---------------------
+
     @SerializedName("OrderDate")
-    val orderDate: String,
+    val orderDate: String?, // Chấp nhận null để tránh lỗi
+
     @SerializedName("TotalAmount")
     val totalAmount: Double,
 
-    @SerializedName("Status")
-    val status: String,
+    @SerializedName("Status") // Hoặc "OrderStatus" tùy API trả về
+    val status: String?,
+
     @SerializedName("OrderItems")
     val items: List<OrderItem>?
 )
+
+// ... (Class OrderItem giữ nguyên)
+
 data class OrderItem(
-    @SerializedName("OrderItemID")
-    val orderItemId: Int,
-
-    @SerializedName("ProductID")
-    val productId: Int,
-
-    @SerializedName("ProductName")
+    @SerializedName("productName")
     val productName: String,
 
-    @SerializedName("Quantity")
-    val quantity: Int,
-
-    @SerializedName("Price")
-    val price: Double,
-
-    @SerializedName("ThumbnailURL")
-    val thumbnailURL: String?
+    @SerializedName("quantity")
+    val quantity: Int
 )
