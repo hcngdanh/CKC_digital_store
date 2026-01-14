@@ -29,7 +29,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 // Màu sắc
-val OrangeColor = Color(0xFFFF5722)
+val OrangeColor = Color(0xFFFF3C00)
 val GreenColor = Color(0xFF4CAF50)
 val BlueColor = Color(0xFF2196F3)
 val GrayText = Color(0xFF757575)
@@ -116,7 +116,7 @@ fun OrderHistoryScreen(
                 indicator = { tabPositions ->
                     TabRowDefaults.PrimaryIndicator(
                         modifier = Modifier.tabIndicatorOffset(tabPositions[HistoryStatus.values().indexOf(selectedTab)]),
-                        color = OrangeColor
+                        color = Color.Red
                     )
                 }
             ) {
