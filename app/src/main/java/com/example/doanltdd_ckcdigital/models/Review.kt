@@ -14,3 +14,10 @@ data class ReviewResponse(
     val data: List<Review>
 )
 
+
+data class AddReviewRequest(
+    val orderId: Int,
+    val userId: Int,
+    val rating: Int,
+    val comment: String
+)

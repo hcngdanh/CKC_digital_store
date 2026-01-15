@@ -103,21 +103,19 @@ fun OrderHistoryScreen(
     fun submitReview(rating: Int, comment: String) {
         val order = selectedOrderForReview ?: return
 
-        // Kiểm tra ProductID có hợp lệ không
-        if (order.ProductID == 0) {
-            Toast.makeText(context, "Không tìm thấy ID sản phẩm", Toast.LENGTH_SHORT).show()
-            return
-        }
-
         scope.launch {
             try {
-                val reviewData = mapOf(
-                    "user_id" to userId,
-                    "product_id" to order.ProductID, // Lấy ID từ Model
-                    "rating" to rating,
-                    "comment" to comment
+                // SỬA 1: Dùng Model AddReviewRequest thay vì Map
+                val request = com.example.doanltdd_ckcdigital.models.AddReviewRequest(
+                    orderId = order.OrderID,  // SỬA 2: Dùng OrderID thay vì ProductID
+                    userId = userId,
+                    rating = rating,
+                    comment = comment
                 )
-                val res = RetrofitClient.apiService.addReview(reviewData)
+
+                // Gọi API
+                val res = RetrofitClient.apiService.addReview(request)
+
                 if (res.success) {
                     Toast.makeText(context, "Đánh giá thành công!", Toast.LENGTH_SHORT).show()
                     showReviewDialog = false
@@ -126,6 +124,7 @@ fun OrderHistoryScreen(
                     Toast.makeText(context, "Lỗi: ${res.message}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
+                e.printStackTrace()
                 Toast.makeText(context, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
             }
         }
@@ -289,16 +288,40 @@ fun OrderHistoryItemCard(
             if (isCompleted) {
                 Spacer(Modifier.height(12.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    val isReviewed = order.IsReviewed == 1
+
                     Button(
-                        onClick = onRateClick,
+                        onClick = {
+                            if (!isReviewed) onRateClick()
+                        },
+                        // Nếu đã đánh giá -> Disable nút (không bấm được)
+                        enabled = !isReviewed,
+
                         shape = RoundedCornerShape(4.dp),
                         modifier = Modifier.height(36.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = OrangeColor),
+
+                        // Đổi màu nút: Cam (chưa đánh giá) / Xám (đã đánh giá)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isReviewed) Color.Gray else OrangeColor,
+                            disabledContainerColor = Color.LightGray // Màu khi bị disable
+                        ),
                         contentPadding = PaddingValues(horizontal = 16.dp)
                     ) {
-                        Icon(Icons.Outlined.RateReview, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.White)
+                        Icon(
+                            imageVector = Icons.Outlined.RateReview,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = Color.White
+                        )
                         Spacer(Modifier.width(8.dp))
-                        Text("Đánh giá", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+
+                        // Đổi chữ hiển thị
+                        Text(
+                            text = if (isReviewed) "Đã đánh giá" else "Đánh giá",
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }

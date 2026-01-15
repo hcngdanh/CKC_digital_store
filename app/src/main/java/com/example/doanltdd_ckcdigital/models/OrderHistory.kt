@@ -9,5 +9,7 @@ data class OrderHistoryModel(
     val ProductName: String?,
     @SerializedName("ThumbnailURL") val ThumbnailURL: String?,
     val TotalQuantity: Int,
-    @SerializedName("ProductID") val ProductID: Int = 0
+    @SerializedName("ProductID") val ProductID: Int = 0,
+
+    val IsReviewed: Int = 0
 )

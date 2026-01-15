@@ -1,5 +1,6 @@
 package com.example.doanltdd_ckcdigital.services
 
+import com.example.doanltdd_ckcdigital.models.AddReviewRequest
 import com.example.doanltdd_ckcdigital.models.ApiResponse
 import com.example.doanltdd_ckcdigital.models.AuthResponse
 import com.example.doanltdd_ckcdigital.models.CancelOrderRequest
@@ -120,8 +121,8 @@ interface ApiService {
     suspend fun checkFavorite(@Path("userId") userId: Int, @Path("productId") productId: Int): ToggleWishlistResponse
 
     // --- ĐÃ SỬA: Dùng SimpleResponse cho addReview ---
-    @POST("add_review")
-    suspend fun addReview(@Body body: Map<String, Any>): SimpleResponse
+    @POST("api/reviews/add")
+    suspend fun addReview(@Body request: AddReviewRequest): SimpleResponse
 
     @GET("api/admin/dashboard-stats")
     suspend fun getDashboardStats(): ApiResponse<DashboardStatsResponse>

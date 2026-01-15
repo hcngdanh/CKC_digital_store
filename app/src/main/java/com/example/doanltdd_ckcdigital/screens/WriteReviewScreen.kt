@@ -1,47 +1,18 @@
 package com.example.doanltdd_ckcdigital.screens
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -65,31 +36,41 @@ fun WriteReviewDialog(
     var rating by remember { mutableIntStateOf(0) }
     var comment by remember { mutableStateOf("") }
 
+    // Màu cam chủ đạo của CKC Digital
+    val BrandColor = Color(0xFFFF5722)
+
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
-            usePlatformDefaultWidth = false
+            usePlatformDefaultWidth = false // Full chiều ngang
         )
     ) {
         Scaffold(
-            containerColor = Color(0xFF1E1E1E),
+            containerColor = Color.White, // Nền trắng
             topBar = {
                 TopAppBar(
                     title = {
                         Column {
-                            Text(text = productName, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                text = productName,
+                                color = Color.Black,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1
+                            )
                             Text(text = "Đăng công khai", color = Color.Gray, fontSize = 12.sp)
                         }
                     },
                     navigationIcon = {
                         IconButton(onClick = onDismiss) {
-                            Icon(Icons.Default.Close, contentDescription = "Đóng", tint = Color.White)
+                            Icon(Icons.Default.Close, contentDescription = "Đóng", tint = Color.Black)
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1E1E1E))
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
                 )
             },
             bottomBar = {
+                // Nút Gửi đánh giá
                 Button(
                     onClick = { onSubmit(rating, comment) },
                     enabled = rating > 0,
@@ -98,12 +79,14 @@ fun WriteReviewDialog(
                         .padding(16.dp)
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF4FC3F7),
-                        disabledContainerColor = Color.Gray
+                        containerColor = BrandColor, // Màu cam
+                        disabledContainerColor = Color.LightGray,
+                        contentColor = Color.White,
+                        disabledContentColor = Color.DarkGray
                     ),
-                    shape = RoundedCornerShape(25.dp)
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Đăng", color = if(rating > 0) Color.Black else Color.DarkGray, fontWeight = FontWeight.Bold)
+                    Text("GỬI ĐÁNH GIÁ", fontWeight = FontWeight.Bold)
                 }
             }
         ) { paddingValues ->
@@ -117,31 +100,40 @@ fun WriteReviewDialog(
             ) {
                 Spacer(modifier = Modifier.height(10.dp))
 
+                // Thông tin người dùng
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = Color.Gray,
+                        color = Color(0xFFEEEEEE),
                         modifier = Modifier.size(40.dp)
                     ) {
                         if (userAvatar != null) {
                             AsyncImage(model = userAvatar, contentDescription = null, contentScale = ContentScale.Crop)
                         } else {
                             Box(contentAlignment = Alignment.Center) {
-                                Text(text = userName.take(1).uppercase(), color = Color.White)
+                                Text(
+                                    text = userName.take(1).uppercase(),
+                                    color = Color.Gray,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                         }
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text(text = userName, color = Color.White, fontWeight = FontWeight.SemiBold)
-                        Text(text = "Đang đánh giá", color = Color.Gray, fontSize = 12.sp)
+                        Text(text = userName, color = Color.Black, fontWeight = FontWeight.SemiBold)
+                        Text(text = "Đang đánh giá sản phẩm", color = Color.Gray, fontSize = 12.sp)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(30.dp))
+
+                // Phần chọn sao
+                Text("Chất lượng sản phẩm", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Row(
                     horizontalArrangement = Arrangement.Center,
@@ -152,7 +144,8 @@ fun WriteReviewDialog(
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = null,
-                            tint = if (isSelected) Color(0xFFFFB400) else Color.Gray,
+                            // Màu vàng cho sao đã chọn, màu xám nhạt cho sao chưa chọn
+                            tint = if (isSelected) Color(0xFFFFC107) else Color(0xFFE0E0E0),
                             modifier = Modifier
                                 .size(48.dp)
                                 .padding(4.dp)
@@ -161,40 +154,40 @@ fun WriteReviewDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                // Text trạng thái dựa trên số sao
+                val ratingText = when(rating) {
+                    1 -> "Tệ"
+                    2 -> "Không hài lòng"
+                    3 -> "Bình thường"
+                    4 -> "Hài lòng"
+                    5 -> "Tuyệt vời"
+                    else -> "Vui lòng chọn số sao"
+                }
+                Text(ratingText, color = BrandColor, fontWeight = FontWeight.Medium, fontSize = 14.sp)
 
+                Spacer(modifier = Modifier.height(30.dp))
+
+                // Ô nhập nội dung
                 OutlinedTextField(
                     value = comment,
                     onValueChange = { comment = it },
-                    placeholder = { Text("Cho mọi người biết về trải nghiệm của bạn", color = Color.Gray) },
+                    placeholder = { Text("Hãy chia sẻ cảm nhận của bạn về sản phẩm...", color = Color.Gray) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(150.dp)
-                        .border(1.dp, Color.Gray, RoundedCornerShape(8.dp)),
+                        .height(150.dp),
+                    shape = RoundedCornerShape(8.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        cursorColor = Color(0xFF4FC3F7),
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedBorderColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        cursorColor = BrandColor,
+                        focusedBorderColor = BrandColor, // Viền màu cam khi focus
+                        unfocusedBorderColor = Color.LightGray,
+                        focusedContainerColor = Color(0xFFFAFAFA),
+                        unfocusedContainerColor = Color(0xFFFAFAFA)
                     )
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedButton(
-                    onClick = {  },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp),
-                    border = BorderStroke(1.dp, Color.Gray),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF4FC3F7))
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Thêm ảnh và video")
-                }
+                // ĐÃ XÓA NÚT "THÊM ẢNH VÀ VIDEO" TẠI ĐÂY
             }
         }
     }

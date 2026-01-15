@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.doanltdd_ckcdigital.models.OrderDetailResponse
 import com.example.doanltdd_ckcdigital.models.CancelOrderRequest
+// Đã xóa import AddReviewRequest vì không dùng nữa
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -62,6 +63,8 @@ fun OrderDetailScreen(
     var showCancelDialog by remember { mutableStateOf(false) }
     var cancelReason by remember { mutableStateOf("") }
 
+    // --- ĐÃ XÓA: State và Logic Dialog Đánh giá ---
+
     fun loadOrder() {
         scope.launch {
             try {
@@ -86,7 +89,7 @@ fun OrderDetailScreen(
         loadOrder()
     }
 
-    // --- DIALOG HỦY ĐƠN HÀNG ---
+    // --- 1. DIALOG HỦY ĐƠN HÀNG ---
     if (showCancelDialog) {
         AlertDialog(
             onDismissRequest = { showCancelDialog = false },
@@ -142,6 +145,8 @@ fun OrderDetailScreen(
         )
     }
 
+    // --- ĐÃ XÓA: Khối hiển thị Dialog Đánh giá ---
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -176,18 +181,17 @@ fun OrderDetailScreen(
                 }
 
                 LazyColumn(
-                    // 1. QUAN TRỌNG: Xóa padding 12.dp ở đây để 2 card đầu tràn màn hình
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 30.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
 
-                    // --- 1. TRẠNG THÁI ĐƠN HÀNG (FULL WIDTH) ---
+                    // --- CARD 1: TRẠNG THÁI ---
                     item {
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Color.White),
-                            shape = RectangleShape, // Vuông góc, không bo tròn
-                            modifier = Modifier.fillMaxWidth() // Tràn ngang
+                            shape = RectangleShape,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Text("Trạng thái: ", fontSize = 15.sp)
@@ -196,12 +200,12 @@ fun OrderDetailScreen(
                         }
                     }
 
-                    // --- 2. ĐỊA CHỈ NHẬN HÀNG (FULL WIDTH) ---
+                    // --- CARD 2: ĐỊA CHỈ ---
                     item {
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Color.White),
-                            shape = RectangleShape, // Vuông góc
-                            modifier = Modifier.fillMaxWidth() // Tràn ngang
+                            shape = RectangleShape,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(Modifier.padding(16.dp)) {
                                 Icon(Icons.Default.LocationOn, null, tint = Color(0xFFFF5722))
@@ -218,19 +222,18 @@ fun OrderDetailScreen(
                         }
                     }
 
-                    // --- 3. CÁC PHẦN DƯỚI: THÊM PADDING ĐỂ THỤT VÀO ---
+                    // --- CARD 3: DANH SÁCH SẢN PHẨM ---
                     item {
                         Text(
                             "Danh sách sản phẩm",
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 12.dp) // Padding tiêu đề
+                            modifier = Modifier.padding(horizontal = 12.dp)
                         )
                     }
 
                     items(items) { item ->
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Color.White),
-                            // Padding cho từng card sản phẩm
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
                         ) {
                             Row(Modifier.padding(12.dp)) {
@@ -252,7 +255,7 @@ fun OrderDetailScreen(
                         }
                     }
 
-                    // 4. Chi tiết thanh toán (Có padding)
+                    // --- CARD 4: CHI TIẾT THANH TOÁN ---
                     item {
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -268,21 +271,22 @@ fun OrderDetailScreen(
                                 HorizontalDivider(Modifier.padding(vertical = 8.dp), color = Color(0xFFEEEEEE))
 
                                 // --- TÍNH TOÁN ---
-
-                                // 1. Tổng tiền hàng (Cộng dồn giá sp x số lượng)
                                 val productTotal = items.sumOf { it.UnitPrice * it.Quantity }
 
-                                // 2. Phí vận chuyển (Lấy chính xác từ Database)
-                                val shippingCost = info.ShippingCost
+                                val shippingCost = if (info.ShippingCost > 0) {
+                                    info.ShippingCost
+                                } else {
+                                    when (info.ShippingMethod?.lowercase(Locale.ROOT)) {
+                                        "hỏa tốc" -> 120000.0
+                                        "nhanh" -> 55000.0
+                                        else -> 35000.0
+                                    }
+                                }
 
-                                // 3. Tính Voucher giảm giá
-                                // Công thức: Voucher = (Tiền hàng + Ship) - Số tiền thực trả
                                 val rawDiscount = (productTotal + shippingCost) - info.TotalAmount
-                                val voucherDiscount = if (rawDiscount > 0) rawDiscount else 0.0
+                                val voucherDiscount = if (rawDiscount > 100) rawDiscount else 0.0
 
                                 // --- HIỂN THỊ ---
-
-                                // Dòng 1: Tổng tiền hàng
                                 Row(
                                     Modifier.fillMaxWidth().padding(vertical = 4.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween
@@ -291,7 +295,6 @@ fun OrderDetailScreen(
                                     Text(formatter.format(productTotal), fontSize = 14.sp, color = Color.Black)
                                 }
 
-                                // Dòng 2: Phí vận chuyển
                                 Row(
                                     Modifier.fillMaxWidth().padding(vertical = 4.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween
@@ -300,7 +303,6 @@ fun OrderDetailScreen(
                                     Text(formatter.format(shippingCost), fontSize = 14.sp, color = Color.Black)
                                 }
 
-                                // Dòng 3: Voucher (Chỉ hiện nếu > 0)
                                 if (voucherDiscount > 0) {
                                     Row(
                                         Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -310,14 +312,13 @@ fun OrderDetailScreen(
                                         Text(
                                             "-${formatter.format(voucherDiscount)}",
                                             fontSize = 14.sp,
-                                            color = Color(0xFF4CAF50) // Màu xanh lá
+                                            color = Color(0xFF4CAF50)
                                         )
                                     }
                                 }
 
                                 HorizontalDivider(Modifier.padding(vertical = 8.dp), color = Color(0xFFEEEEEE))
 
-                                // Dòng 4: Tổng thanh toán
                                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                     Text("Tổng thanh toán", fontWeight = FontWeight.Bold)
                                     Text(
@@ -331,7 +332,7 @@ fun OrderDetailScreen(
                         }
                     }
 
-                    // 5. Thông tin thời gian (Có padding)
+                    // --- CARD 5: THÔNG TIN THỜI GIAN ---
                     item {
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -350,10 +351,12 @@ fun OrderDetailScreen(
                         }
                     }
 
-                    // 6. NÚT HỦY ĐƠN HÀNG (Có padding)
+                    // --- CARD 6: CÁC NÚT THAO TÁC (ĐÃ XÓA NÚT ĐÁNH GIÁ) ---
                     item {
+                        Spacer(Modifier.height(16.dp))
+
+                        // Chỉ hiển thị nút HỦY nếu đơn đang chờ xử lý
                         if (info.OrderStatus == "Chờ xử lý" || info.OrderStatus == "Chờ xác nhận") {
-                            Spacer(Modifier.height(16.dp))
                             Button(
                                 onClick = {
                                     cancelReason = ""
@@ -361,7 +364,7 @@ fun OrderDetailScreen(
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 12.dp) // Thêm padding
+                                    .padding(horizontal = 12.dp)
                                     .height(50.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                                 shape = RoundedCornerShape(8.dp)
@@ -369,11 +372,12 @@ fun OrderDetailScreen(
                                 Text("HỦY ĐƠN HÀNG", fontWeight = FontWeight.Bold)
                             }
                         }
+
                         Spacer(Modifier.height(30.dp))
                     }
                 }
             } else {
-                // Error UI
+                // Màn hình lỗi
                 Column(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally
