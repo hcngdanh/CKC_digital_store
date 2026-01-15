@@ -169,12 +169,14 @@ fun AppNavGraph() {
             )
         }
 
-        // --- ORDER HISTORY (USER) ---
         composable(
             route = "order_history?status={status}",
             arguments = listOf(navArgument("status") { defaultValue = "ALL" })
         ) { backStackEntry ->
+            // 1. Lấy chuỗi status từ URL (VD: "PICKUP")
             val statusString = backStackEntry.arguments?.getString("status") ?: "ALL"
+
+            // 2. Chuyển chuỗi thành Enum HistoryStatus
             val initialTab = try {
                 HistoryStatus.valueOf(statusString)
             } catch (e: Exception) {
@@ -185,7 +187,7 @@ fun AppNavGraph() {
             if (user != null) {
                 OrderHistoryScreen(
                     userId = user.UserID,
-                    initialTab = initialTab,
+                    initialTab = initialTab, // Truyền Tab cần focus vào màn hình
                     onBackClick = { navController.popBackStack() },
                     onOrderClick = { orderId -> navController.navigate("order_detail/$orderId") }
                 )
@@ -238,14 +240,14 @@ fun AppNavGraph() {
                         }
                     },
                     onAddressManageClick = { navController.navigate("address_list") },
+
+                    // --- SỬA TẠI ĐÂY: Truyền biến status vào URL ---
                     onOrderHistoryClick = { status ->
-                        // Chuyển Enum hoặc String sang màn hình history
-                        // Lưu ý: ProfileScreen của bạn đang trả về Unit hoặc String tùy phiên bản
-                        // Nếu phiên bản mới nhất trả về String status ("CONFIRMING", "SHIPPING"...):
-                        // navController.navigate("order_history?status=$status")
-                        // Nếu chỉ là () -> Unit:
-                        navController.navigate("order_history")
+                        // status lúc này là "CONFIRMING", "PICKUP",... từ ProfileScreen gửi sang
+                        navController.navigate("order_history?status=$status")
                     },
+                    // -----------------------------------------------
+
                     onEditProfileClick = { navController.navigate("edit_profile") },
                     onPasswordChangeClick = { navController.navigate("change_password") },
                     onFavoriteClick = { navController.navigate("wishlist") }

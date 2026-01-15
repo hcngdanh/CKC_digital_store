@@ -18,3 +18,8 @@ data class OrderDetailRequest(
     val quantity: Int,
     val price: Double
 )
+
+data class CancelOrderRequest(
+    val orderId: Int,
+    val reason: String
+)

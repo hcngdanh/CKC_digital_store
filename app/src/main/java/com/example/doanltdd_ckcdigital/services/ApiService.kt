@@ -2,6 +2,7 @@ package com.example.doanltdd_ckcdigital.services
 
 import com.example.doanltdd_ckcdigital.models.ApiResponse
 import com.example.doanltdd_ckcdigital.models.AuthResponse
+import com.example.doanltdd_ckcdigital.models.CancelOrderRequest
 import com.example.doanltdd_ckcdigital.models.CartItemResponse
 import com.example.doanltdd_ckcdigital.models.CategoryModel
 import com.example.doanltdd_ckcdigital.models.LoginRequest
@@ -136,11 +137,14 @@ interface ApiService {
         @Body body: Map<String, String> // Gửi lên: "status" và "cancelReason" (nếu hủy)
     ): SimpleResponse
 
+    @POST("api/orders/cancel")
+    suspend fun cancelOrder(@Body request: CancelOrderRequest): SimpleResponse
+
 
 }
 //https://distensile-unrecruitable-georgann.ngrok-free.dev
 object RetrofitClient {
-    private const val BASE_URL = "http://10.0.2.2:3000/"
+    private const val BASE_URL = "https://distensile-unrecruitable-georgann.ngrok-free.dev/"
 
     val apiService: ApiService by lazy {
         Retrofit.Builder()

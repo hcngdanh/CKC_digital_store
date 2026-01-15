@@ -81,6 +81,10 @@ fun OrderHistoryScreen(
     var showReviewDialog by remember { mutableStateOf(false) }
     var selectedOrderForReview by remember { mutableStateOf<OrderHistoryModel?>(null) }
 
+    LaunchedEffect(initialTab) {
+        selectedTab = initialTab
+    }
+
     LaunchedEffect(userId) {
         try {
             isLoading = true

@@ -15,14 +15,19 @@ data class OrderInfoModel(
     val ShippingMethod: String?,
     val PaymentMethod: String?,
 
-    // --- THÊM 2 TRƯỜNG NÀY ĐỂ HIỂN THỊ LÊN ADMIN ---
-    @SerializedName("ReceiverName") // Tên trường phải khớp với SELECT trong Node.js
+    @SerializedName("ReceiverName")
     val ReceiverName: String?,
 
     @SerializedName("PhoneNumber")
-    val PhoneNumber: String?
-)
+    val PhoneNumber: String?,
 
+    @SerializedName("CancelReason")
+    val CancelReason: String?,
+
+    // --- THÊM DÒNG NÀY ---
+    @SerializedName("ShippingCost")
+    val ShippingCost: Double = 0.0
+)
 data class OrderItemModel(
     val ProductID: Int,
     val ProductName: String,

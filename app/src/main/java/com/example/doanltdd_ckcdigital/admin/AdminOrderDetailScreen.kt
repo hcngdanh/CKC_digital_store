@@ -1,6 +1,7 @@
 package com.example.doanltdd_ckcdigital.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -28,7 +29,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.doanltdd_ckcdigital.models.OrderDetailResponse
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
-// Import OrderStatus từ file AdminOrderManagerScreen.kt (nếu chung package admin)
+// Import Enum OrderStatus từ file AdminOrderManagerScreen của bạn
 import com.example.doanltdd_ckcdigital.admin.OrderStatus
 
 import kotlinx.coroutines.launch
@@ -46,6 +47,7 @@ fun AdminOrderDetailScreen(
     var orderDetail by remember { mutableStateOf<OrderDetailResponse?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
+    // State cho BottomSheet cập nhật trạng thái
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     var selectedStatus by remember { mutableStateOf(OrderStatus.PENDING) }
@@ -176,59 +178,70 @@ fun AdminOrderDetailScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                // 2. Thông tin khách hàng
-                Text("Thông tin giao hàng", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                // --- KHỐI HIỂN THỊ LÝ DO HỦY (NẾU CÓ) ---
+                if (currentStatusEnum == OrderStatus.CANCELLED && !info.CancelReason.isNullOrEmpty()) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)), // Đỏ nhạt
+                        modifier = Modifier.fillMaxWidth(),
+                        border = BorderStroke(1.dp, Color(0xFFFFCDD2))
+                    ) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text("Lý do hủy đơn:", fontWeight = FontWeight.Bold, color = Color(0xFFC62828))
+                            Spacer(Modifier.height(4.dp))
+                            Text(text = info.CancelReason, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+                        }
+                    }
+                    Spacer(Modifier.height(16.dp))
+                }
+                // ----------------------------------------
+
+                // 2. Thông tin đơn hàng (Người nhận, Vận chuyển, Thanh toán)
+                Text("Thông tin đơn hàng", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Card(colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.padding(top = 8.dp).fillMaxWidth()) {
                     Column(Modifier.padding(16.dp)) {
+                        // Tên người nhận
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Person, null, tint = Color.Gray, modifier = Modifier.size(20.dp))
                             Spacer(Modifier.width(8.dp))
                             Text(text = info.ReceiverName ?: "Khách hàng", fontWeight = FontWeight.Bold)
                         }
                         Spacer(Modifier.height(8.dp))
+
+                        // SĐT
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Phone, null, tint = Color.Gray, modifier = Modifier.size(20.dp))
                             Spacer(Modifier.width(8.dp))
                             Text(text = info.PhoneNumber ?: "Không có số điện thoại")
                         }
                         Spacer(Modifier.height(8.dp))
+
+                        // Địa chỉ
                         Row(verticalAlignment = Alignment.Top) {
                             Icon(Icons.Default.Place, null, tint = Color.Gray, modifier = Modifier.size(20.dp))
                             Spacer(Modifier.width(8.dp))
                             Text(info.ShipAddress, color = Color.DarkGray)
                         }
+
                         Spacer(Modifier.height(12.dp))
-                        HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray) // Đường kẻ phân cách
+                        HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray)
                         Spacer(Modifier.height(12.dp))
 
+                        // Phương thức vận chuyển
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.LocalShipping, null, tint = Color(0xFF2196F3), modifier = Modifier.size(20.dp)) // Màu xanh dương
+                            Icon(Icons.Default.LocalShipping, null, tint = Color(0xFF2196F3), modifier = Modifier.size(20.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = "Vận chuyển: ",
-                                fontWeight = FontWeight.Medium,
-                                color = Color.Gray
-                            )
-                            Text(
-                                text = info.ShippingMethod ?: "Tiêu chuẩn",
-                                fontWeight = FontWeight.Bold
-                            )
+                            Text(text = "Vận chuyển: ", fontWeight = FontWeight.Medium, color = Color.Gray)
+                            Text(text = info.ShippingMethod ?: "Tiêu chuẩn", fontWeight = FontWeight.Bold)
                         }
 
-                        Spacer(Modifier.height(12.dp))
+                        Spacer(Modifier.height(8.dp))
 
+                        // Phương thức thanh toán
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Payment, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(20.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = "Thanh toán: ",
-                                fontWeight = FontWeight.Medium,
-                                color = Color.Gray
-                            )
-                            Text(
-                                text = info.PaymentMethod ?: "Thanh toán khi nhận hàng (COD)",
-                                fontWeight = FontWeight.Bold
-                            )
+                            Text(text = "Thanh toán: ", fontWeight = FontWeight.Medium, color = Color.Gray)
+                            Text(text = info.PaymentMethod ?: "Thanh toán khi nhận hàng (COD)", fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -257,19 +270,105 @@ fun AdminOrderDetailScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                // 4. Tổng tiền
-                Card(colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
-                    Row(modifier = Modifier.padding(16.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Tổng thanh toán", fontWeight = FontWeight.Bold)
-                        Text(formatter.format(info.TotalAmount), color = Color(0xFFFF5722), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                // 4. Chi tiết thanh toán (Đã cập nhật hiển thị Voucher)
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text("Chi tiết thanh toán", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Spacer(Modifier.height(8.dp))
+
+                        // --- BƯỚC 1: TÍNH TOÁN (BẰNG CÁCH TRỪ ĐI) ---
+
+                        // 1. Tổng tiền hàng
+                        val productTotal = items.sumOf { it.UnitPrice * it.Quantity }
+
+                        // 2. Phí vận chuyển (Ưu tiên lấy từ DB, nếu = 0 thì lấy theo tên)
+                        val shippingCost = if (info.ShippingCost > 0) {
+                            info.ShippingCost
+                        } else {
+                            when (info.ShippingMethod?.lowercase(Locale.ROOT)) {
+                                "hỏa tốc" -> 120000.0
+                                "nhanh" -> 55000.0
+                                else -> 35000.0
+                            }
+                        }
+
+                        // 3. Tính Voucher bằng phép TRỪ: (Hàng + Ship) - Thực trả
+                        val rawDiscount = (productTotal + shippingCost) - info.TotalAmount
+                        // Nếu kết quả > 0 thì đó là tiền voucher, nếu <= 0 thì là 0đ
+                        val voucherDiscount = if (rawDiscount > 100) rawDiscount else 0.0
+
+                        // --- BƯỚC 2: HIỂN THỊ ---
+
+                        // Dòng 1: Tổng tiền hàng
+                        Row(
+                            Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Tổng tiền hàng", color = Color.Gray, fontSize = 14.sp)
+                            Text(formatter.format(productTotal), fontSize = 14.sp, color = Color.Black)
+                        }
+
+                        // Dòng 2: Phí vận chuyển
+                        Row(
+                            Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Phí vận chuyển", color = Color.Gray, fontSize = 14.sp)
+                            Text(formatter.format(shippingCost), fontSize = 14.sp, color = Color.Black)
+                        }
+
+                        // Dòng 3: Voucher giảm giá (Luôn hiển thị để dễ check)
+                        Row(
+                            Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Voucher giảm giá", color = Color.Gray, fontSize = 14.sp)
+
+                            if (voucherDiscount > 0) {
+                                // Nếu có giảm giá: Hiện màu xanh và dấu trừ
+                                Text(
+                                    "-${formatter.format(voucherDiscount)}",
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF4CAF50), // Màu xanh lá
+                                    fontWeight = FontWeight.Bold
+                                )
+                            } else {
+                                // Nếu không có: Hiện 0đ màu đen
+                                Text(
+                                    "0 đ",
+                                    fontSize = 14.sp,
+                                    color = Color.Black
+                                )
+                            }
+                        }
+
+                        HorizontalDivider(Modifier.padding(vertical = 12.dp), color = Color.LightGray)
+
+                        // Dòng 4: Tổng thanh toán (Khớp với DB)
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Tổng thanh toán", fontWeight = FontWeight.Bold)
+                            Text(
+                                formatter.format(info.TotalAmount),
+                                color = Color(0xFFFF5722),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp
+                            )
+                        }
                     }
                 }
+
                 Spacer(Modifier.height(80.dp))
             }
         }
     }
 
-    // --- BOTTOM SHEET CẬP NHẬT TRẠNG THÁI (Đã bỏ lý do hủy) ---
+    // --- BOTTOM SHEET CẬP NHẬT TRẠNG THÁI ---
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
@@ -314,7 +413,7 @@ fun AdminOrderDetailScreen(
                             try {
                                 val body = mapOf(
                                     "status" to selectedStatus.apiName,
-                                    "cancelReason" to "" // Gửi rỗng vì đã bỏ ô nhập
+                                    "cancelReason" to ""
                                 )
                                 val res = RetrofitClient.apiService.updateOrderStatus(orderId, body)
                                 if (res.success) {
