@@ -73,11 +73,6 @@ fun AppNavGraph() {
         // --- USER ROUTES ---
         composable("product_list") {
             ProductListScreen(
-                user = sessionManager.currentUser,
-                onLogout = {
-                    sessionManager.clearSession()
-                    navController.navigate("login") { popUpTo(navController.graph.startDestinationId) { inclusive = true } }
-                },
                 onProductClick = { id -> navController.navigate("product_detail/$id") },
                 onCartClick = { navController.navigate("cart") },
                 onProfileClick = {
@@ -156,9 +151,22 @@ fun AppNavGraph() {
         }
 
         composable("order_success") {
-            OrderSuccessScreen(onContinueShoppingClick = {
-                navController.navigate("product_list") { popUpTo("product_list") { inclusive = true } }
-            })
+            OrderSuccessScreen(
+                onContinueShoppingClick = {
+                    // Quay về trang chủ, xóa hết lịch sử cũ
+                    navController.navigate("product_list") {
+                        popUpTo("product_list") { inclusive = true }
+                    }
+                },
+                onViewOrderHistory = {
+                    // --- LOGIC QUAN TRỌNG ĐỂ ẤN BACK VỀ TRANG CHỦ ---
+                    navController.navigate("order_history") {
+                        // Xóa tất cả các màn hình từ 'product_list' trở đi (Checkout, Cart, Success...)
+                        // inclusive = false nghĩa là giữ lại màn hình 'product_list' ở dưới cùng
+                        popUpTo("product_list") { inclusive = false }
+                    }
+                }
+            )
         }
 
         // --- ORDER HISTORY (USER) ---
@@ -224,7 +232,10 @@ fun AppNavGraph() {
                     onBackClick = { navController.popBackStack() },
                     onLogoutClick = {
                         sessionManager.clearSession()
-                        navController.navigate("product_list") { popUpTo("product_list") { inclusive = true } }
+                        navController.navigate("login") {
+                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                            launchSingleTop = true
+                        }
                     },
                     onAddressManageClick = { navController.navigate("address_list") },
                     onOrderHistoryClick = { status ->
@@ -311,7 +322,7 @@ fun AppNavGraph() {
         composable("register") {
             RegisterScreen(
                 viewModel = authViewModel,
-                onRegisterSuccess = {},
+                onRegisterSuccess = { navController.popBackStack() },
                 onNavigateToLogin = { navController.popBackStack() },
                 onBack = { navController.popBackStack() }
             )
@@ -343,13 +354,19 @@ fun AppNavGraph() {
                     user = user,
                     onLogout = {
                         sessionManager.clearSession()
-                        navController.navigate("login") { popUpTo("admin_dashboard") { inclusive = true } }
+                        navController.navigate("login") {
+                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                            launchSingleTop = true
+                        }
                     },
                     // Điều hướng đến danh sách đơn hàng
                     onNavigateToOrderManager = { navController.navigate("admin_order_manager") }
                 )
             } else {
-                navController.navigate("login") { popUpTo("admin_dashboard") { inclusive = true } }
+                navController.navigate("login") {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    launchSingleTop = true
+                }
             }
         }
 

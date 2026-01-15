@@ -48,8 +48,6 @@ fun ProductListScreen(
     onProductClick: (Int) -> Unit,
     onCartClick: () -> Unit,
     onProfileClick: ()-> Unit,
-    user: UserModel?,
-    onLogout: () -> Unit,
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }

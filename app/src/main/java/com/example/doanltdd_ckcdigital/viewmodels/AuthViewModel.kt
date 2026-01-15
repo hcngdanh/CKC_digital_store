@@ -13,6 +13,9 @@ import com.example.doanltdd_ckcdigital.utils.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.net.SocketTimeoutException
+import java.io.IOException
 
 sealed class LoginState {
     object Idle : LoginState()
@@ -46,8 +49,23 @@ class AuthViewModel(private val sessionManager: SessionManager) : ViewModel() {
                     loginError = response.message
                 }
             } catch (e: Exception) {
-                _loginState.value = LoginState.Error("Không thể kết nối server: ${e.message}")
-                loginError = "Lỗi kết nối: ${e.message}"
+                e.printStackTrace()
+
+                // --- XỬ LÝ LỖI CHI TIẾT TẠI ĐÂY ---
+                val friendlyMessage = when {
+                    // Bắt lỗi 401 Unauthorized -> Đổi thành thông báo dễ hiểu
+                    e is HttpException && e.code() == 401 -> "Sai email hoặc mật khẩu!"
+
+                    // Lỗi mạng/timeout
+                    e is SocketTimeoutException -> "Kết nối quá hạn, vui lòng thử lại."
+                    e is IOException -> "Không có kết nối mạng, vui lòng kiểm tra lại."
+
+                    // Lỗi khác
+                    else -> "Lỗi hệ thống: ${e.message}"
+                }
+
+                _loginState.value = LoginState.Error(message = friendlyMessage)
+                loginError = friendlyMessage
             }
         }
     }
@@ -72,4 +90,9 @@ class AuthViewModel(private val sessionManager: SessionManager) : ViewModel() {
     }
 
     fun resetState() { _loginState.value = LoginState.Idle }
+
+    fun clearState() {
+        _loginState.value = LoginState.Idle // Hoặc trạng thái mặc định ban đầu
+        loginError = "" // Xóa dòng thông báo lỗi đỏ
+    }
 }

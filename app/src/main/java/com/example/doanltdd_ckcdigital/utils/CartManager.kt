@@ -3,6 +3,7 @@ package com.example.doanltdd_ckcdigital.utils
 import androidx.compose.runtime.mutableStateListOf
 import com.example.doanltdd_ckcdigital.models.CartItemResponse
 import com.example.doanltdd_ckcdigital.models.ProductModel
+import com.example.doanltdd_ckcdigital.services.RetrofitClient
 
 data class CartItem(
     val CartItemID: Int = 0,
@@ -105,6 +106,22 @@ object CartManager {
         } else {
             removeProduct(item)
         }
+    }
+
+    suspend fun clearCartOnServer() {
+        // Tạo bản sao danh sách để tránh lỗi ConcurrentModification khi loop
+        val itemsToDelete = _cartItems.toList()
+
+        itemsToDelete.forEach { item ->
+            try {
+                // Gọi API xóa từng item trong Database
+                RetrofitClient.apiService.removeCartItem(item.CartItemID)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        // Cuối cùng xóa sạch danh sách local
+        _cartItems.clear()
     }
 
     fun getTotalPrice(): Double {

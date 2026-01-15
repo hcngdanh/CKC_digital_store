@@ -46,6 +46,7 @@ fun LoginScreen(
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
+        viewModel.clearState()
         viewModel.resetState()
     }
 

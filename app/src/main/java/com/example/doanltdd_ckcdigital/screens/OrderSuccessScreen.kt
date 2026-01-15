@@ -18,7 +18,8 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun OrderSuccessScreen(
-    onContinueShoppingClick: () -> Unit
+    onContinueShoppingClick: () -> Unit,
+    onViewOrderHistory: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -82,7 +83,7 @@ fun OrderSuccessScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // 5. Nút xem lịch sử (Optional - dạng text)
-        TextButton(onClick = { /* Có thể điều hướng về lịch sử đơn hàng */ }) {
+        TextButton(onClick = onViewOrderHistory) {
             Text("Xem trạng thái đơn hàng", color = Color.Gray)
         }
     }

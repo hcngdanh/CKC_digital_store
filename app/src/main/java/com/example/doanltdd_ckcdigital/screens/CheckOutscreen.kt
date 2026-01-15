@@ -172,7 +172,9 @@ fun CheckoutScreen(
                 val response = RetrofitClient.apiService.createOrder(request)
                 if (response.success) {
                     Toast.makeText(context, "Đặt hàng thành công!", Toast.LENGTH_SHORT).show()
-                    if (buyNowProductId == -1) CartManager.clearCart()
+                    if (buyNowProductId == -1) {
+                        CartManager.clearCartOnServer()
+                    }
                     onOrderSuccess()
                 } else {
                     Toast.makeText(context, "Lỗi: ${response.message}", Toast.LENGTH_SHORT).show()

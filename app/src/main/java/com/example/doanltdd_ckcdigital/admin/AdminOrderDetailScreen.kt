@@ -10,6 +10,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Place
@@ -194,6 +196,39 @@ fun AdminOrderDetailScreen(
                             Icon(Icons.Default.Place, null, tint = Color.Gray, modifier = Modifier.size(20.dp))
                             Spacer(Modifier.width(8.dp))
                             Text(info.ShipAddress, color = Color.DarkGray)
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray) // Đường kẻ phân cách
+                        Spacer(Modifier.height(12.dp))
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.LocalShipping, null, tint = Color(0xFF2196F3), modifier = Modifier.size(20.dp)) // Màu xanh dương
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "Vận chuyển: ",
+                                fontWeight = FontWeight.Medium,
+                                color = Color.Gray
+                            )
+                            Text(
+                                text = info.ShippingMethod ?: "Tiêu chuẩn",
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Spacer(Modifier.height(12.dp))
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Payment, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "Thanh toán: ",
+                                fontWeight = FontWeight.Medium,
+                                color = Color.Gray
+                            )
+                            Text(
+                                text = info.PaymentMethod ?: "Thanh toán khi nhận hàng (COD)",
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }
