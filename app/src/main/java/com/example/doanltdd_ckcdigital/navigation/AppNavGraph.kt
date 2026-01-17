@@ -29,11 +29,7 @@ fun AppNavGraph() {
     val sessionManager = remember { SessionManager.getInstance(context) }
 
     // ViewModel Auth
-    val authViewModel: AuthViewModel = viewModel(factory = object : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return AuthViewModel(sessionManager) as T
-        }
-    })
+
 
     // ViewModel Product
     val productViewModel: ProductViewModel = viewModel()
@@ -222,7 +218,9 @@ fun AppNavGraph() {
                     onAddNewAddressClick = { navController.navigate("add_address") }
                 )
             } else {
-                navController.navigate("login")
+                LaunchedEffect(Unit) {
+                    navController.navigate("login")
+                }
             }
         }
 
@@ -235,7 +233,7 @@ fun AppNavGraph() {
                     onLogoutClick = {
                         sessionManager.clearSession()
                         navController.navigate("login") {
-                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                            popUpTo(0) { inclusive = true }
                             launchSingleTop = true
                         }
                     },
@@ -253,7 +251,11 @@ fun AppNavGraph() {
                     onFavoriteClick = { navController.navigate("wishlist") }
                 )
             } else {
-                navController.navigate("login")
+                LaunchedEffect(Unit) {
+                    navController.navigate("login") {
+                        popUpTo("product_list") { inclusive = true }
+                    }
+                }
             }
         }
 
@@ -311,6 +313,13 @@ fun AppNavGraph() {
 
         // --- AUTH ROUTES ---
         composable("login") {
+
+            val authViewModel: AuthViewModel = viewModel(factory = object : ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return AuthViewModel(sessionManager) as T
+                }
+            })
+
             LoginScreen(
                 viewModel = authViewModel,
                 onNavigateToHome = { navController.navigate("product_list") { popUpTo("login") { inclusive = true } } },
@@ -322,6 +331,11 @@ fun AppNavGraph() {
         }
 
         composable("register") {
+            val authViewModel: AuthViewModel = viewModel(factory = object : ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return AuthViewModel(sessionManager) as T
+                }
+            })
             RegisterScreen(
                 viewModel = authViewModel,
                 onRegisterSuccess = { navController.popBackStack() },
@@ -341,7 +355,9 @@ fun AppNavGraph() {
                     onProductClick = { productId -> navController.navigate("product_detail/$productId") }
                 )
             } else {
-                navController.navigate("login")
+                LaunchedEffect(Unit) {
+                    navController.navigate("login")
+                }
             }
         }
 
@@ -357,7 +373,8 @@ fun AppNavGraph() {
                     onLogout = {
                         sessionManager.clearSession()
                         navController.navigate("login") {
-                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                            // popUpTo(0) nghĩa là xóa hết toàn bộ lịch sử back stack
+                            popUpTo(0) { inclusive = true }
                             launchSingleTop = true
                         }
                     },
@@ -365,9 +382,11 @@ fun AppNavGraph() {
                     onNavigateToOrderManager = { navController.navigate("admin_order_manager") }
                 )
             } else {
-                navController.navigate("login") {
-                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                    launchSingleTop = true
+                LaunchedEffect(Unit) {
+                    navController.navigate("login") {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             }
         }
