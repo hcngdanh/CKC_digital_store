@@ -6,6 +6,7 @@ import com.example.doanltdd_ckcdigital.models.AuthResponse
 import com.example.doanltdd_ckcdigital.models.CancelOrderRequest
 import com.example.doanltdd_ckcdigital.models.CartItemResponse
 import com.example.doanltdd_ckcdigital.models.CategoryModel
+import com.example.doanltdd_ckcdigital.models.DashboardStatsResponse
 import com.example.doanltdd_ckcdigital.models.LoginRequest
 import com.example.doanltdd_ckcdigital.models.Order
 import com.example.doanltdd_ckcdigital.models.OrderDetailResponse
@@ -22,7 +23,6 @@ import com.example.doanltdd_ckcdigital.models.ToggleWishlistResponse
 import com.example.doanltdd_ckcdigital.models.UserAddress
 import com.example.doanltdd_ckcdigital.models.UserModel
 import com.example.doanltdd_ckcdigital.models.Voucher
-import com.example.doanltdd_ckcdigital.models.DashboardStatsResponse
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -33,6 +33,8 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface ApiService {
+
+    // --- PRODUCTS & CATEGORIES ---
     @GET("api/products")
     suspend fun getProducts(): ApiResponse<List<ProductModel>>
 
@@ -45,6 +47,30 @@ interface ApiService {
     @GET("api/products/{id}/reviews")
     suspend fun getProductReviews(@Path("id") productId: Int): ApiResponse<List<Review>>
 
+    @GET("api/promotions")
+    suspend fun getPromotions(): ApiResponse<List<PromotionModel>>
+
+    // --- AUTHENTICATION ---
+    @POST("api/auth/login")
+    suspend fun login(@Body request: LoginRequest): AuthResponse
+
+    @POST("api/auth/register")
+    suspend fun register(@Body request: RegisterRequest): AuthResponse
+
+    @POST("api/auth/logout")
+    suspend fun logout(): ApiResponse<Unit>
+
+    @PUT("api/auth/update-profile/{userId}")
+    suspend fun updateProfile(
+        @Path("userId") userId: Int, @Body request: Map<String, String>
+    ): ApiResponse<UserModel>
+
+    @PUT("api/auth/change-password/{userId}")
+    suspend fun changePassword(
+        @Path("userId") userId: Int, @Body request: Map<String, String>
+    ): SimpleResponse
+
+    // --- ADDRESS ---
     @GET("api/addresses/{userId}")
     suspend fun getUserAddresses(@Path("userId") userId: Int): List<UserAddress>
 
@@ -55,20 +81,15 @@ interface ApiService {
     suspend fun getAddressDetail(@Path("addressId") addressId: Int): UserAddress
 
     @PUT("api/addresses/{addressId}")
-    suspend fun updateAddress(@Path("addressId") addressId: Int, @Body address: UserAddress): SimpleResponse
+    suspend fun updateAddress(
+        @Path("addressId") addressId: Int,
+        @Body address: UserAddress
+    ): SimpleResponse
 
     @POST("api/addresses")
     suspend fun addAddress(@Body address: UserAddress): SimpleResponse
 
-    @POST("api/auth/login")
-    suspend fun login(@Body request: LoginRequest): AuthResponse
-
-    @POST("api/auth/register")
-    suspend fun register(@Body request: RegisterRequest): AuthResponse
-
-    @POST("api/auth/logout")
-    suspend fun logout(): ApiResponse<Unit>
-
+    // --- CART ---
     @POST("api/cart/add")
     suspend fun addToCart(@Body request: ProductAddToCart): SimpleResponse
 
@@ -81,23 +102,9 @@ interface ApiService {
     @DELETE("api/cart/remove/{cartItemId}")
     suspend fun removeCartItem(@Path("cartItemId") cartItemId: Int): SimpleResponse
 
+    // --- ORDERS & CHECKOUT ---
     @GET("api/vouchers")
     suspend fun getVouchers(): ApiResponse<List<Voucher>>
-
-    @PUT("api/auth/update-profile/{userId}")
-    suspend fun updateProfile(
-        @Path("userId") userId: Int,
-        @Body request: Map<String, String>
-    ): ApiResponse<UserModel>
-
-    @PUT("api/auth/change-password/{userId}")
-    suspend fun changePassword(
-        @Path("userId") userId: Int,
-        @Body request: Map<String, String>
-    ): SimpleResponse
-
-    @GET("api/promotions")
-    suspend fun getPromotions(): ApiResponse<List<PromotionModel>>
 
     @GET("api/shipping-methods")
     suspend fun getShippingMethods(): ApiResponse<List<ShippingMethod>>
@@ -111,6 +118,10 @@ interface ApiService {
     @GET("api/orders/detail/{orderId}")
     suspend fun getOrderDetail(@Path("orderId") orderId: Int): ApiResponse<OrderDetailResponse>
 
+    @POST("api/orders/cancel")
+    suspend fun cancelOrder(@Body request: CancelOrderRequest): SimpleResponse
+
+    // --- WISHLIST ---
     @GET("api/wishlist/{userId}")
     suspend fun getWishlist(@Path("userId") userId: Int): ApiResponse<List<ProductModel>>
 
@@ -118,40 +129,33 @@ interface ApiService {
     suspend fun toggleWishlist(@Body request: Map<String, Int>): ToggleWishlistResponse
 
     @GET("api/wishlist/check/{userId}/{productId}")
-    suspend fun checkFavorite(@Path("userId") userId: Int, @Path("productId") productId: Int): ToggleWishlistResponse
+    suspend fun checkFavorite(
+        @Path("userId") userId: Int,
+        @Path("productId") productId: Int
+    ): ToggleWishlistResponse
 
-    // --- ĐÃ SỬA: Dùng SimpleResponse cho addReview ---
+    // --- REVIEWS ---
     @POST("api/reviews/add")
     suspend fun addReview(@Body request: AddReviewRequest): SimpleResponse
 
+    // --- ADMIN ---
     @GET("api/admin/dashboard-stats")
     suspend fun getDashboardStats(): ApiResponse<DashboardStatsResponse>
 
-    // Lấy tất cả đơn hàng cho Admin
     @GET("api/admin/orders")
     suspend fun getAllOrders(): ApiResponse<List<Order>>
 
-    // Cập nhật trạng thái đơn hàng (Dùng cho màn hình chi tiết)
     @PUT("api/orders/{orderId}/status")
     suspend fun updateOrderStatus(
-        @Path("orderId") orderId: Int,
-        @Body body: Map<String, String> // Gửi lên: "status" và "cancelReason" (nếu hủy)
+        @Path("orderId") orderId: Int, @Body body: Map<String, String>
     ): SimpleResponse
-
-    @POST("api/orders/cancel")
-    suspend fun cancelOrder(@Body request: CancelOrderRequest): SimpleResponse
-
-
 }
-//https://distensile-unrecruitable-georgann.ngrok-free.dev
+
 object RetrofitClient {
-    private const val BASE_URL = "https://distensile-unrecruitable-georgann.ngrok-free.dev/"
+    private const val BASE_URL = "http://10.0.2.2:3000/"
 
     val apiService: ApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
+        Retrofit.Builder().baseUrl(BASE_URL).addConverterFactory(GsonConverterFactory.create())
+            .build().create(ApiService::class.java)
     }
 }

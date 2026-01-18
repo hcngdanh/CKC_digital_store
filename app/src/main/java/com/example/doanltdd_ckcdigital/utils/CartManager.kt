@@ -1,20 +1,15 @@
 package com.example.doanltdd_ckcdigital.utils
 
 import androidx.compose.runtime.mutableStateListOf
+import com.example.doanltdd_ckcdigital.models.CartItem
 import com.example.doanltdd_ckcdigital.models.CartItemResponse
 import com.example.doanltdd_ckcdigital.models.ProductModel
+import com.example.doanltdd_ckcdigital.models.ProductAddToCart
 import com.example.doanltdd_ckcdigital.services.RetrofitClient
-
-data class CartItem(
-    val CartItemID: Int = 0,
-    val ProductID: Int,
-    val ProductName: String,
-    val Price: Double,
-    val ThumbnailURL: String?,
-    var quantity: Int
-)
+import android.util.Log
 
 object CartManager {
+
     private val _cartItems = mutableStateListOf<CartItem>()
     val cartItems: List<CartItem> get() = _cartItems
 
@@ -39,34 +34,20 @@ object CartManager {
 
     suspend fun addToCart(userId: Int, product: ProductModel) {
         try {
-            val requestBody = com.example.doanltdd_ckcdigital.models.ProductAddToCart(
+            val requestBody = ProductAddToCart(
                 userId = userId,
                 productID = product.ProductID,
                 quantity = 1
             )
-
-            val response = com.example.doanltdd_ckcdigital.services.RetrofitClient.apiService.addToCart(requestBody)
-
+            val response = RetrofitClient.apiService.addToCart(requestBody)
             if (response.success) {
-                val refreshResponse = com.example.doanltdd_ckcdigital.services.RetrofitClient.apiService.getCartItems(userId)
+                val refreshResponse = RetrofitClient.apiService.getCartItems(userId)
                 if (refreshResponse.success) {
                     syncCartFromServer(refreshResponse.data)
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            android.util.Log.e("CartManager", "Lỗi addToCart: ${e.message}")
-        }
-    }
-
-    suspend fun removeProduct(item: CartItem) {
-        try {
-            val response = com.example.doanltdd_ckcdigital.services.RetrofitClient.apiService.removeCartItem(item.CartItemID)
-            if (response.success) {
-                _cartItems.remove(item)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("CartManager", "Error addToCart: ${e.message}")
         }
     }
 
@@ -74,8 +55,7 @@ object CartManager {
         val newQuantity = item.quantity + 1
         try {
             val body = mapOf("cartItemId" to item.CartItemID, "quantity" to newQuantity)
-            val response = com.example.doanltdd_ckcdigital.services.RetrofitClient.apiService.updateCartQuantity(body)
-
+            val response = RetrofitClient.apiService.updateCartQuantity(body)
             if (response.success) {
                 val index = _cartItems.indexOf(item)
                 if (index != -1) {
@@ -92,8 +72,7 @@ object CartManager {
             val newQuantity = item.quantity - 1
             try {
                 val body = mapOf("cartItemId" to item.CartItemID, "quantity" to newQuantity)
-                val response = com.example.doanltdd_ckcdigital.services.RetrofitClient.apiService.updateCartQuantity(body)
-
+                val response = RetrofitClient.apiService.updateCartQuantity(body)
                 if (response.success) {
                     val index = _cartItems.indexOf(item)
                     if (index != -1) {
@@ -108,19 +87,26 @@ object CartManager {
         }
     }
 
-    suspend fun clearCartOnServer() {
-        // Tạo bản sao danh sách để tránh lỗi ConcurrentModification khi loop
-        val itemsToDelete = _cartItems.toList()
+    suspend fun removeProduct(item: CartItem) {
+        try {
+            val response = RetrofitClient.apiService.removeCartItem(item.CartItemID)
+            if (response.success) {
+                _cartItems.remove(item)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 
+    suspend fun clearCartOnServer() {
+        val itemsToDelete = _cartItems.toList()
         itemsToDelete.forEach { item ->
             try {
-                // Gọi API xóa từng item trong Database
                 RetrofitClient.apiService.removeCartItem(item.CartItemID)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
-        // Cuối cùng xóa sạch danh sách local
         _cartItems.clear()
     }
 
@@ -128,5 +114,7 @@ object CartManager {
         return _cartItems.sumOf { it.Price * it.quantity }
     }
 
-    fun clearCart() { _cartItems.clear() }
+    fun clearCart() {
+        _cartItems.clear()
+    }
 }

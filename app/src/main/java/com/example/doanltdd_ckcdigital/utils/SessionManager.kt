@@ -13,24 +13,11 @@ class SessionManager private constructor(context: Context) {
     private val prefs = context.getSharedPreferences("CKC_SESSION", Context.MODE_PRIVATE)
     private val gson = Gson()
 
-    // --- SỬA ĐỔI QUAN TRỌNG ---
-    // Chuyển currentUser thành State để AppNavGraph có thể "lắng nghe" thay đổi
     var currentUser by mutableStateOf<UserModel?>(null)
         private set
 
     init {
         currentUser = fetchUserFromPrefs()
-    }
-
-    fun saveUserSession(user: UserModel) {
-        // Cập nhật State -> App tự động chạy lại LaunchedEffect lấy giỏ hàng
-        currentUser = user
-
-        val userJson = gson.toJson(user)
-        prefs.edit {
-            putString("user_data", userJson)
-            putBoolean("is_logged_in", true)
-        }
     }
 
     private fun fetchUserFromPrefs(): UserModel? {
@@ -44,9 +31,16 @@ class SessionManager private constructor(context: Context) {
         } else null
     }
 
-    fun getUser(): UserModel? {
-        return currentUser
+    fun saveUserSession(user: UserModel) {
+        currentUser = user
+        val userJson = gson.toJson(user)
+        prefs.edit {
+            putString("user_data", userJson)
+            putBoolean("is_logged_in", true)
+        }
     }
+
+    fun getUser(): UserModel? = currentUser
 
     fun isLoggedIn(): Boolean {
         return prefs.getBoolean("is_logged_in", false) && currentUser != null
@@ -60,7 +54,6 @@ class SessionManager private constructor(context: Context) {
         prefs.edit(commit = true) {
             clear()
         }
-        // Cập nhật về null -> App tự động xóa giỏ hàng hiển thị
         currentUser = null
     }
 

@@ -24,7 +24,6 @@ data class OrderInfoModel(
     @SerializedName("CancelReason")
     val CancelReason: String?,
 
-    // --- THÊM DÒNG NÀY ---
     @SerializedName("ShippingCost")
     val ShippingCost: Double = 0.0
 )

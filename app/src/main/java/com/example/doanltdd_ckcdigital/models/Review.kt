@@ -9,11 +9,6 @@ data class Review(
     val ReviewDate: String
 )
 
-data class ReviewResponse(
-    val success: Boolean,
-    val data: List<Review>
-)
-
 
 data class AddReviewRequest(
     val orderId: Int,
