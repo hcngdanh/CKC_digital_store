@@ -64,7 +64,7 @@ fun OrderHistoryScreen(
     userId: Int,
     initialTab: HistoryStatus = HistoryStatus.ALL,
     onBackClick: () -> Unit,
-    onOrderClick: (Int) -> Unit,
+    onOrderClick: (Int, String) -> Unit,
     viewModel: OrderViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -199,7 +199,7 @@ fun OrderHistoryScreen(
                     items(filteredOrders) { order ->
                         OrderHistoryItemCard(
                             order = order,
-                            onClick = { onOrderClick(order.OrderID) },
+                            onClick = { onOrderClick(order.OrderID, selectedTab.name) },
                             onRateClick = {
                                 selectedOrderForReview = order
                                 showReviewDialog = true

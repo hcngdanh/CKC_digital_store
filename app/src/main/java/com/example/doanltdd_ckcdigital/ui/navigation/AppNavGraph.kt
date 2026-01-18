@@ -219,7 +219,9 @@ fun AppNavGraph() {
                     userId = user.UserID,
                     initialTab = initialTab,
                     onBackClick = { navController.popBackStack() },
-                    onOrderClick = { orderId -> navController.navigate("order_detail/$orderId") }
+                    onOrderClick = { orderId, currentTabName ->
+                        navController.navigate("order_detail/$orderId?fromStatus=$currentTabName")
+                    }
                 )
             } else {
                 LaunchedEffect(Unit) { navController.navigate("login") }
@@ -227,12 +229,27 @@ fun AppNavGraph() {
         }
 
         composable(
-            route = "order_detail/{orderId}",
-            arguments = listOf(navArgument("orderId") { type = NavType.IntType })
+            route = "order_detail/{orderId}?fromStatus={fromStatus}",
+            arguments = listOf(
+                navArgument("orderId") { type = NavType.IntType },
+                navArgument("fromStatus") { defaultValue = "ALL" }
+            )
         ) { backStackEntry ->
             val orderId = backStackEntry.arguments?.getInt("orderId")
+            val fromStatus = backStackEntry.arguments?.getString("fromStatus") ?: "ALL"
+
             if (orderId != null) {
-                OrderDetailScreen(orderId = orderId, onBackClick = { navController.popBackStack() })
+                OrderDetailScreen(
+                    orderId = orderId,
+                    onBackClick = {
+                        navController.navigate("order_history?status=$fromStatus") {
+                            popUpTo("order_detail/{orderId}?fromStatus={fromStatus}") {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    }
+                )
             }
         }
 
