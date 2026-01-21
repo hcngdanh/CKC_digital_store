@@ -40,7 +40,7 @@ fun WriteReviewDialog(
     var comment by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
 
-    val BrandColor = Color(0xFFFF5722)
+    val BrandColor = Color(0xFFD32F2F)
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -54,20 +54,20 @@ fun WriteReviewDialog(
                         Column {
                             Text(
                                 text = productName,
-                                color = Color.Black,
+                                color = Color.White,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1
                             )
-                            Text(text = "Đăng công khai", color = Color.Gray, fontSize = 12.sp)
+                            Text(text = "Đăng công khai", color = Color.White, fontSize = 12.sp)
                         }
                     },
                     navigationIcon = {
                         IconButton(onClick = onDismiss) {
-                            Icon(Icons.Default.Close, contentDescription = "Đóng", tint = Color.Black)
+                            Icon(Icons.Default.Close, contentDescription = "Đóng", tint = Color.White)
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
                 )
             },
             bottomBar = {
