@@ -75,7 +75,6 @@ class ProductViewModel : ViewModel() {
             _detailLoading.value = true
             _productDetail.value = null
             _reviews.value = emptyList()
-            _isFavorite.value = false
 
             try {
                 val productRes = RetrofitClient.apiService.getProductDetail(productId)
@@ -88,12 +87,6 @@ class ProductViewModel : ViewModel() {
                     _reviews.value = reviewRes.data
                 }
 
-                if (userId != null) {
-                    val favResponse = RetrofitClient.apiService.checkFavorite(userId, productId)
-                    if (favResponse.success) {
-                        _isFavorite.value = favResponse.isFavorite
-                    }
-                }
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {

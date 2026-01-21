@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Person
@@ -99,7 +100,7 @@ fun ProductListScreen(
                         },
                         actions = {
                             IconButton(onClick = { onProfileClick() }) {
-                                Icon(Icons.Outlined.Person, null, tint = Color.White)
+                                Icon(Icons.Filled.Person, null, tint = Color.White)
                             }
                             BadgedBox(
                                 badge = {
