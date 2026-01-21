@@ -48,9 +48,13 @@ fun ProductDetailScreen(
     val isFavorite by viewModel.isFavorite.collectAsState()
     val isLoading by viewModel.detailLoading.collectAsState()
 
+
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
 
     LaunchedEffect(productId) {
+        if (user != null) {
+            viewModel.checkFavoriteStatus(user.UserID, productId)
+        }
         viewModel.loadProductDetail(productId, user?.UserID)
     }
 
@@ -149,16 +153,15 @@ fun ProductDetailScreen(
                         )
 
                         IconButton(onClick = {
-                            viewModel.toggleFavorite(
-                                productId = productId,
-                                userId = user?.UserID,
-                                onSuccess = { msg -> Toast.makeText(context, msg, Toast.LENGTH_SHORT).show() },
-                                onError = { msg -> Toast.makeText(context, msg, Toast.LENGTH_SHORT).show() }
-                            )
+                            if (user != null) {
+                                viewModel.toggleFavorite(user.UserID, productId)
+                            } else {
+                                Toast.makeText(context, "Vui lòng đăng nhập", Toast.LENGTH_SHORT).show()
+                            }
                         }) {
                             Icon(
                                 imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                contentDescription = "Yêu thích",
+                                contentDescription = "Favorite",
                                 tint = if (isFavorite) Color.Red else Color.Gray,
                                 modifier = Modifier.size(28.dp)
                             )

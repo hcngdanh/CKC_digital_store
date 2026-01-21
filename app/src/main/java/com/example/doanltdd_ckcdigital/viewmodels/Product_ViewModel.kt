@@ -47,6 +47,8 @@ class ProductViewModel : ViewModel() {
     private val _detailLoading = MutableStateFlow(false)
     val detailLoading: StateFlow<Boolean> = _detailLoading.asStateFlow()
 
+
+
     init {
         fetchProducts()
     }
@@ -125,30 +127,33 @@ class ProductViewModel : ViewModel() {
         _isGridView.value = isGrid
     }
 
-    fun toggleFavorite(productId: Int, userId: Int?, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
-        if (userId == null) {
-            onError("Vui lòng đăng nhập để lưu yêu thích")
-            return
-        }
-
-        val oldState = _isFavorite.value
-        _isFavorite.value = !oldState
-
+    fun toggleFavorite(userId: Int, productId: Int) {
         viewModelScope.launch {
+            _isFavorite.value = !_isFavorite.value
+
             try {
                 val request = mapOf("userId" to userId, "productId" to productId)
                 val response = RetrofitClient.apiService.toggleWishlist(request)
 
                 if (response.success) {
                     _isFavorite.value = response.isFavorite
-                    val msg = if (response.isFavorite) "Đã thêm vào yêu thích" else "Đã xóa khỏi yêu thích"
-                    onSuccess(msg)
-                } else {
-                    _isFavorite.value = oldState
                 }
             } catch (e: Exception) {
-                _isFavorite.value = oldState
-                onError("Lỗi kết nối")
+                _isFavorite.value = !_isFavorite.value
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun checkFavoriteStatus(userId: Int, productId: Int) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitClient.apiService.checkFavorite(userId, productId)
+                if (response.success) {
+                    _isFavorite.value = response.isFavorite
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
