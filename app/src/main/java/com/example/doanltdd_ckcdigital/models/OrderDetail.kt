@@ -25,7 +25,10 @@ data class OrderInfoModel(
     val CancelReason: String?,
 
     @SerializedName("ShippingCost")
-    val ShippingCost: Double = 0.0
+    val ShippingCost: Double = 0.0,
+    val Rating: Int?,
+    val Comment: String?,
+    val ReviewDate: String?
 )
 data class OrderItemModel(
     val ProductID: Int,

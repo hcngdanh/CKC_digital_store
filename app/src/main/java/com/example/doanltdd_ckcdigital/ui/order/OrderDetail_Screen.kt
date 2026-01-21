@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -275,6 +276,52 @@ fun OrderDetailScreen(
                                 Spacer(Modifier.height(8.dp))
                                 RowInfo("Mã đơn hàng", "#${info.OrderID}")
                                 RowInfo("Ngày đặt hàng", formatDetailDateTime(info.OrderDate))
+                            }
+                        }
+                    }
+
+                    if (info.Rating != null) {
+                        item {
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
+                            ) {
+                                Column(Modifier.padding(16.dp)) {
+                                    Text("Đánh giá của bạn", fontWeight = FontWeight.Bold)
+                                    Spacer(Modifier.height(8.dp))
+
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        repeat(5) { index ->
+                                            Icon(
+                                                imageVector = Icons.Default.Star,
+                                                contentDescription = null,
+                                                tint = if (index < info.Rating) Color(0xFFFFC107) else Color.LightGray,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            text = formatDetailDateTime(info.ReviewDate),
+                                            fontSize = 12.sp,
+                                            color = Color.Gray
+                                        )
+                                    }
+
+                                    if (!info.Comment.isNullOrEmpty()) {
+                                        Spacer(Modifier.height(8.dp))
+                                        Surface(
+                                            color = Color(0xFFF5F5F5),
+                                            shape = RoundedCornerShape(8.dp),
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Text(
+                                                text = info.Comment,
+                                                modifier = Modifier.padding(12.dp),
+                                                fontSize = 14.sp
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

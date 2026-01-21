@@ -22,7 +22,6 @@ import com.example.doanltdd_ckcdigital.models.SimpleResponse
 import com.example.doanltdd_ckcdigital.models.ToggleWishlistResponse
 import com.example.doanltdd_ckcdigital.models.UserAddress
 import com.example.doanltdd_ckcdigital.models.UserModel
-import com.example.doanltdd_ckcdigital.models.Voucher
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -103,8 +102,6 @@ interface ApiService {
     suspend fun removeCartItem(@Path("cartItemId") cartItemId: Int): SimpleResponse
 
     // --- ORDERS & CHECKOUT ---
-    @GET("api/vouchers")
-    suspend fun getVouchers(): ApiResponse<List<Voucher>>
 
     @GET("api/shipping-methods")
     suspend fun getShippingMethods(): ApiResponse<List<ShippingMethod>>
@@ -152,7 +149,7 @@ interface ApiService {
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "http://10.0.2.2:3000/"
+    private const val BASE_URL = "https://distensile-unrecruitable-georgann.ngrok-free.dev/"
 
     val apiService: ApiService by lazy {
         Retrofit.Builder().baseUrl(BASE_URL).addConverterFactory(GsonConverterFactory.create())
